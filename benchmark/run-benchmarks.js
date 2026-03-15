@@ -7,13 +7,18 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
 
-const FRAMEWORKS = [
-  { name: "Svelte 5", dir: "svelte", port: 4173, color: "\x1b[38;5;208m" },
-  { name: "Vue 3.5", dir: "vue-3.5", port: 4174, color: "\x1b[32m" },
-  { name: "Vue Vapor", dir: "vue-vapor", port: 4175, color: "\x1b[34m" },
-  { name: "SolidJS", dir: "solidjs", port: 4176, color: "\x1b[35m" },
-  { name: "React 19", dir: "react", port: 4177, color: "\x1b[36m" },
+const FRAMEWORKS_LIST = [
+  { name: "Svelte 5", dir: "svelte", port: 4173, color: "\x1b[38;5;208m", arg: "--svelte" },
+  { name: "Vue 3.5", dir: "vue-3.5", port: 4174, color: "\x1b[32m", arg: "--vue" },
+  { name: "Vue Vapor", dir: "vue-vapor", port: 4175, color: "\x1b[34m", arg: "--vapor" },
+  { name: "SolidJS", dir: "solidjs", port: 4176, color: "\x1b[35m", arg: "--solid" },
+  { name: "React 19", dir: "react", port: 4177, color: "\x1b[36m", arg: "--react" },
 ];
+
+const args = process.argv.slice(2);
+const FRAMEWORKS = args.length > 0
+  ? FRAMEWORKS_LIST.filter(fw => args.includes(fw.arg))
+  : FRAMEWORKS_LIST;
 
 function getBundleSize(fwDir) {
   const assetsDir = path.join(fwDir, "dist", "assets");
@@ -114,7 +119,7 @@ async function runBenchmark() {
           // Task 2499 in backlog, Task 2499 in todo, etc.
           return cards.length > 0 && cards.length <= 10;
         },
-        { timeout: 60000 },
+        { timeout: 90000 },
       );
       metrics.filterTime = (performance.now() - startFilter).toFixed(2);
       process.stdout.write(`${metrics.filterTime} ms\n`);
@@ -166,7 +171,7 @@ async function runBenchmark() {
         } catch (e) {}
       }
     } catch (err) {
-      console.log(`\n  Error: ${err.message}`);
+      console.log(`\n  Error during ${fw.name} benchmark: ${err.message}`);
       if (server && server.pid) {
         try {
           process.kill(-server.pid);

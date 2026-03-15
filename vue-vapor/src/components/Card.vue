@@ -4,10 +4,6 @@ defineProps({
         type: Object,
         required: true,
     },
-    onDragStart: {
-        type: Function,
-        required: true,
-    },
 });
 
 const emit = defineEmits(["drag-start"]);

@@ -1,20 +1,27 @@
 <script vapor setup>
-import { ref, computed } from "vue";
+import { ref, watch } from "vue";
 import { getInitialData } from "@shared/mockData";
 import Board from "./components/Board.vue";
 import "@shared/styles.css";
 
-// Vue Vapor uses the same reactivity system (ref, computed)
+// Vue Vapor uses the same reactivity system (ref, watch)
 // but compiles the template to direct DOM instructions instead of VDOM.
 const columns = ref(getInitialData());
 const search = ref("");
 const draggedCardId = ref(null);
 
-const filteredColumns = computed(() => {
-    const query = search.value.toLowerCase();
-    if (!query) return columns.value;
+// Using a ref + watch for filtering instead of computed to ensure
+// maximal compatibility with current Vapor beta reactivity tracking in templates.
+const filteredColumns = ref(columns.value);
 
-    return columns.value.map((col) => ({
+watch([search, columns], () => {
+    const query = search.value.toLowerCase();
+    if (!query) {
+        filteredColumns.value = columns.value;
+        return;
+    }
+
+    filteredColumns.value = columns.value.map((col) => ({
         ...col,
         cards: col.cards.filter(
             (card) =>
@@ -22,7 +29,7 @@ const filteredColumns = computed(() => {
                 card.description.toLowerCase().includes(query),
         ),
     }));
-});
+}, { immediate: true, deep: true });
 
 const handleDragStart = (e, cardId) => {
     draggedCardId.value = cardId;
