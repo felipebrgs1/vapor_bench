@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, searchForWorkspaceRoot } from "vite";
 import solid from "vite-plugin-solid";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
@@ -15,8 +15,7 @@ export default defineConfig({
   },
   server: {
     fs: {
-      // Allow serving files from the shared directory outside of the project root
-      allow: [".."],
+      allow: [searchForWorkspaceRoot(process.cwd()), "../shared"],
     },
   },
 });
