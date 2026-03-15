@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
+const NUM_ROUNDS = 3;
 
 const FRAMEWORKS_LIST = [
   { name: "Svelte 5", dir: "svelte", port: 4173, color: "\x1b[38;5;208m", arg: "--svelte" },
@@ -29,187 +30,217 @@ function getBundleSize(fwDir) {
   if (!jsFile) return { size: 0, gzip: 0 };
 
   const stats = fs.statSync(path.join(assetsDir, jsFile));
-  return { size: stats.size / 1024, gzip: 0 }; // Gzip is measured by Vite during build, here we take raw
+  return { size: stats.size / 1024, gzip: 0 };
+}
+
+async function runFrameworkBenchmark(fw) {
+  const browser = await chromium.launch({
+    args: ["--enable-precise-memory-info", "--no-sandbox"],
+  });
+
+  try {
+    const page = await browser.newPage();
+    const metrics = {
+      loadTime: 0,
+      filterTime: 0,
+      dragDropTime: 0,
+      memoryHeap: 0,
+    };
+
+    // Benchmark 1: Initial Load & Rendering
+    const startLoad = performance.now();
+    await page.goto(`http://localhost:${fw.port}`, {
+      waitUntil: "networkidle",
+      timeout: 60000,
+    });
+    await page.waitForSelector(".card", { timeout: 30000 });
+    metrics.loadTime = performance.now() - startLoad;
+
+    // Benchmark 2: Memory Usage
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const memory = await page.evaluate(() => {
+      return window.performance.memory
+        ? window.performance.memory.usedJSHeapSize
+        : 0;
+    });
+    metrics.memoryHeap = memory / (1024 * 1024);
+
+    // Benchmark 3: Reactivity / Filtering
+    const input = page.locator("input");
+    const startFilter = performance.now();
+    await input.pressSequentially("Task 2499", { delay: 10 });
+    await page.waitForFunction(
+      () => {
+        const cards = document.querySelectorAll(".card");
+        return cards.length > 0 && cards.length <= 10;
+      },
+      { timeout: 90000 },
+    );
+    metrics.filterTime = performance.now() - startFilter;
+
+    // Benchmark 4: Drag & Drop Interaction
+    await input.clear();
+    await page.waitForFunction(
+      () => document.querySelectorAll(".card").length > 9000,
+      { timeout: 60000 }
+    );
+
+    const sourceCard = page.locator(".column:first-child .card:first-child");
+    const targetColumn = page.locator(".column:last-child");
+    const cardIdBefore = await sourceCard.evaluate(
+      (el) => el.innerText.split("\n")[0],
+    );
+
+    const startDrag = performance.now();
+    await sourceCard.dragTo(targetColumn);
+    await page.waitForFunction(
+      (expectedTitle) => {
+        const lastColCards = document
+          .querySelector(".column:last-child")
+          .querySelectorAll(".card-title");
+        return Array.from(lastColCards).some((c) =>
+          c.innerText.includes(expectedTitle),
+        );
+      },
+      cardIdBefore,
+      { timeout: 10000 },
+    );
+    metrics.dragDropTime = performance.now() - startDrag;
+
+    await browser.close();
+    return metrics;
+  } catch (err) {
+    await browser.close();
+    throw err;
+  }
 }
 
 async function runBenchmark() {
   console.log(
     "\x1b[1m\x1b[33m%s\x1b[0m",
-    "Starting Framework Stress Test (10,000 Cards + Drag & Drop)...",
+    `Starting Parallel Framework Stress Test (10,000 Cards, ${NUM_ROUNDS} rounds per framework)...`,
   );
 
-  const results = [];
+  const servers = [];
+  const allStats = {};
 
-  for (const fw of FRAMEWORKS) {
-    console.log(`\n${fw.color}--- Benchmarking ${fw.name} --- \x1b[0m`);
-
-    const fwDir = path.join(ROOT_DIR, fw.dir);
-    let server;
-
-    try {
-      // 1. Build
+  try {
+    // 1. Build all frameworks sequentially (to avoid resource contention during build)
+    console.log("\n\x1b[1mPhase 1: Building all frameworks...\x1b[0m");
+    for (const fw of FRAMEWORKS) {
+      const fwDir = path.join(ROOT_DIR, fw.dir);
       process.stdout.write(`  Building ${fw.name}... `);
       execSync("pnpm run build", { cwd: fwDir, stdio: "ignore" });
-      const bundleData = getBundleSize(fwDir);
-      process.stdout.write(`Done (${bundleData.size.toFixed(2)} KB)\n`);
+      process.stdout.write(`Done\n`);
+    }
 
-      // 2. Start Preview Server
-      process.stdout.write(`  Starting server on port ${fw.port}... `);
-      server = spawn("pnpm", ["run", "preview", "--port", fw.port.toString()], {
+    // 2. Start all servers
+    console.log("\n\x1b[1mPhase 2: Starting preview servers...\x1b[0m");
+    for (const fw of FRAMEWORKS) {
+      const fwDir = path.join(ROOT_DIR, fw.dir);
+      process.stdout.write(`  Starting ${fw.name} on port ${fw.port}... `);
+      const server = spawn("pnpm", ["run", "preview", "--port", fw.port.toString()], {
         cwd: fwDir,
         detached: true,
         stdio: "ignore",
       });
+      servers.push({ fw, process: server });
+    }
+    // Wait for all servers to be ready
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    console.log("All servers ready.");
 
-      // Wait for server to be ready
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-      process.stdout.write(`Ready!\n`);
+    // 3. Run Rounds in parallel across frameworks
+    console.log(`\n\x1b[1mPhase 3: Executing benchmarks (Parallel Frameworks, Sequential Rounds)...\x1b[0m`);
 
-      // Launch browser
-      const browser = await chromium.launch({
-        args: ["--enable-precise-memory-info", "--no-sandbox"],
-      });
-
-      const page = await browser.newPage();
-
-      const metrics = {
-        name: fw.name,
-        bundleSize: bundleData.size.toFixed(2),
-        loadTime: 0,
-        filterTime: 0,
-        dragDropTime: 0,
-        memoryHeap: 0,
-      };
-
-      // Benchmark 1: Initial Load & Rendering
-      process.stdout.write(`  Measuring Load Time (10,000 cards)... `);
-      const startLoad = performance.now();
-      await page.goto(`http://localhost:${fw.port}`, {
-        waitUntil: "networkidle",
-        timeout: 60000,
-      });
-      await page.waitForSelector(".card", { timeout: 30000 });
-      metrics.loadTime = performance.now() - startLoad;
-      process.stdout.write(`${metrics.loadTime.toFixed(2)} ms\n`);
-
-      // Benchmark 2: Memory Usage
-      process.stdout.write(`  Measuring Memory... `);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      const memory = await page.evaluate(() => {
-        return window.performance.memory
-          ? window.performance.memory.usedJSHeapSize
-          : 0;
-      });
-      metrics.memoryHeap = (memory / (1024 * 1024)).toFixed(2);
-      process.stdout.write(`${metrics.memoryHeap} MB\n`);
-
-      // Benchmark 3: Reactivity / Filtering
-      process.stdout.write(`  Measuring Filter Time (Search 'Task 2499')... `);
-      const input = page.locator("input");
-      const startFilter = performance.now();
-
-      // Use pressSequentially to simulate real typing which is more demanding
-      await input.pressSequentially("Task 2499", { delay: 10 });
-
-      await page.waitForFunction(
-        () => {
-          const cards = document.querySelectorAll(".card");
-          // With 10,000 cards, "Task 2499" should result in exactly 4 matches
-          // (one per column index, but our generator uses columnId in title)
-          // Task 2499 in backlog, Task 2499 in todo, etc.
-          return cards.length > 0 && cards.length <= 10;
-        },
-        { timeout: 90000 },
-      );
-      metrics.filterTime = (performance.now() - startFilter).toFixed(2);
-      process.stdout.write(`${metrics.filterTime} ms\n`);
-
-      // Benchmark 4: Drag & Drop Interaction
-      await input.clear();
-      await page.waitForFunction(
-        () => document.querySelectorAll(".card").length > 9000,
-        { timeout: 60000 }
-      );
-
-      process.stdout.write(
-        `  Measuring Drag & Drop (Move card from Backlog to Done)... `,
-      );
-
-      const sourceCard = page.locator(".column:first-child .card:first-child");
-      const targetColumn = page.locator(".column:last-child");
-
-      const cardIdBefore = await sourceCard.evaluate(
-        (el) => el.innerText.split("\n")[0],
-      );
-
-      const startDrag = performance.now();
-      await sourceCard.dragTo(targetColumn);
-
-      await page.waitForFunction(
-        (expectedTitle) => {
-          const lastColCards = document
-            .querySelector(".column:last-child")
-            .querySelectorAll(".card-title");
-          return Array.from(lastColCards).some((c) =>
-            c.innerText.includes(expectedTitle),
-          );
-        },
-        cardIdBefore,
-        { timeout: 10000 },
-      );
-
-      metrics.dragDropTime = (performance.now() - startDrag).toFixed(2);
-      process.stdout.write(`${metrics.dragDropTime} ms\n`);
-
-      results.push(metrics);
-
-      await browser.close();
-
-      if (server && server.pid) {
+    const benchmarkPromises = FRAMEWORKS.map(async (fw) => {
+      allStats[fw.name] = [];
+      for (let i = 1; i <= NUM_ROUNDS; i++) {
         try {
-          process.kill(-server.pid);
-        } catch (e) {}
+          const metrics = await runFrameworkBenchmark(fw);
+          allStats[fw.name].push(metrics);
+          console.log(`  ${fw.color}✔ [${fw.name}] Round ${i}/${NUM_ROUNDS} completed\x1b[0m`);
+        } catch (err) {
+          console.error(`  ${fw.color}✘ [${fw.name}] Round ${i}/${NUM_ROUNDS} failed: ${err.message}\x1b[0m`);
+        }
       }
-    } catch (err) {
-      console.log(`\n  Error during ${fw.name} benchmark: ${err.message}`);
-      if (server && server.pid) {
+    });
+
+    await Promise.all(benchmarkPromises);
+
+    // 4. Cleanup servers
+    console.log("\n\x1b[1mPhase 4: Cleaning up...\x1b[0m");
+    for (const s of servers) {
+      if (s.process.pid) {
         try {
-          process.kill(-server.pid);
+          process.kill(-s.process.pid);
         } catch (e) {}
       }
     }
+
+    // 5. Calculate averages
+    const finalResults = [];
+    for (const fw of FRAMEWORKS) {
+      const stats = allStats[fw.name];
+      if (!stats || stats.length === 0) continue;
+
+      const fwDir = path.join(ROOT_DIR, fw.dir);
+      const bundleData = getBundleSize(fwDir);
+
+      const avg = {
+        name: fw.name,
+        bundleSize: bundleData.size.toFixed(2),
+        loadTime: stats.reduce((acc, s) => acc + s.loadTime, 0) / stats.length,
+        filterTime: stats.reduce((acc, s) => acc + s.filterTime, 0) / stats.length,
+        dragDropTime: stats.reduce((acc, s) => acc + s.dragDropTime, 0) / stats.length,
+        memoryHeap: stats.reduce((acc, s) => acc + s.memoryHeap, 0) / stats.length,
+      };
+      finalResults.push(avg);
+    }
+
+    // 6. Final Comparison Table
+    console.log(
+      "\n\x1b[1m\x1b[32m%s\x1b[0m",
+      `Final Averaged Results (${NUM_ROUNDS} Rounds per framework):`,
+    );
+    const tableData = finalResults.map((r) => ({
+      Framework: r.name,
+      "Bundle (KB)": r.bundleSize,
+      "Load (ms)": r.loadTime.toFixed(2),
+      "Filter (ms)": r.filterTime.toFixed(2),
+      "DragDrop (ms)": r.dragDropTime.toFixed(2),
+      "Memory (MB)": r.memoryHeap.toFixed(2),
+    }));
+
+    console.table(tableData);
+
+    // 7. Generate report
+    const reportPath = path.join(ROOT_DIR, "BENCHMARK_REPORT.md");
+    let markdown = `# Benchmark Results - ${new Date().toISOString().split("T")[0]}\n\n`;
+    markdown += `*Results are averages of **${NUM_ROUNDS} rounds**. Frameworks were tested in parallel environments.*\n\n`;
+    markdown +=
+      "| Framework | Bundle (KB) | Load (ms) | Filter (ms) | DragDrop (ms) | Memory (MB) |\n";
+    markdown += "| :--- | :---: | :---: | :---: | :---: | :---: |\n";
+
+    tableData.forEach((row) => {
+      markdown += `| ${row.Framework} | ${row["Bundle (KB)"]} | ${row["Load (ms)"]} | ${row["Filter (ms)"]} | ${row["DragDrop (ms)"]} | ${row["Memory (MB)"]} |\n`;
+    });
+
+    fs.writeFileSync(reportPath, markdown);
+    console.log(`\nMarkdown report generated: ${reportPath}`);
+
+    process.exit(0);
+  } catch (err) {
+    console.error("\nUnexpected error during benchmark execution:", err);
+    for (const s of servers) {
+      if (s.process.pid) {
+        try {
+          process.kill(-s.process.pid);
+        } catch (e) {}
+      }
+    }
+    process.exit(1);
   }
-
-  // Final Comparison Table
-  console.log(
-    "\n\x1b[1m\x1b[32m%s\x1b[0m",
-    "Final Stress Test Results (10,000 Cards):",
-  );
-  const tableData = results.map((r) => ({
-    Framework: r.name,
-    "Bundle (KB)": r.bundleSize,
-    "Load (ms)": r.loadTime.toFixed(2),
-    "Filter (ms)": r.filterTime,
-    "DragDrop (ms)": r.dragDropTime,
-    "Memory (MB)": r.memoryHeap,
-  }));
-
-  console.table(tableData);
-
-  const reportPath = path.join(ROOT_DIR, "BENCHMARK_REPORT.md");
-  let markdown = `# Benchmark Results - ${new Date().toISOString().split("T")[0]}\n\n`;
-  markdown +=
-    "| Framework | Bundle (KB) | Load (ms) | Filter (ms) | DragDrop (ms) | Memory (MB) |\n";
-  markdown += "| :--- | :---: | :---: | :---: | :---: | :---: |\n";
-
-  tableData.forEach((row) => {
-    markdown += `| ${row.Framework} | ${row["Bundle (KB)"]} | ${row["Load (ms)"]} | ${row["Filter (ms)"]} | ${row["DragDrop (ms)"]} | ${row["Memory (MB)"]} |\n`;
-  });
-
-  fs.writeFileSync(reportPath, markdown);
-  console.log(`\nMarkdown report generated: ${reportPath}`);
-
-  process.exit(0);
 }
 
 runBenchmark().catch((err) => {
