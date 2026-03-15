@@ -2,10 +2,14 @@
   "name": "vapor-framework-benchmark",
   "private": true,
   "version": "1.0.0",
-  "description": "Professional monorepo benchmark for Svelte 5, Vue 3.5, Vue Vapor, and SolidJS using pnpm workspaces",
+  "description": "Professional monorepo benchmark for Svelte 5, Vue 3.5, Vue Vapor, SolidJS, and React 19 using pnpm workspaces",
   "type": "module",
   "scripts": {
+    "setup": "pnpm install",
     "bench": "node benchmark/run-benchmarks.js"
+  },
+  "engines": {
+    "node": "22"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
@@ -13,5 +17,13 @@
     "playwright": "^1.49.1",
     "tailwindcss": "^4.2.1",
     "vite": "^8.0.0"
-  }
+  },
+  "workspaces": [
+    "svelte",
+    "vue-3.5",
+    "vue-vapor",
+    "solidjs",
+    "react",
+    "benchmark"
+  ]
 }

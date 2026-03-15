@@ -86,7 +86,7 @@ const App = () => {
         <input
           type="text"
           class="search-input"
-          placeholder="Filtrar 1.000 cartões em tempo real..."
+          placeholder="Filter 10,000 cards in real-time..."
           value={search()}
           onInput={(e) => setSearch(e.currentTarget.value)}
         />

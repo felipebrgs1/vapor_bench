@@ -12,6 +12,7 @@ const FRAMEWORKS = [
   { name: "Vue 3.5", dir: "vue-3.5", port: 4174, color: "\x1b[32m" },
   { name: "Vue Vapor", dir: "vue-vapor", port: 4175, color: "\x1b[34m" },
   { name: "SolidJS", dir: "solidjs", port: 4176, color: "\x1b[35m" },
+  { name: "React 19", dir: "react", port: 4177, color: "\x1b[36m" },
 ];
 
 function getBundleSize(fwDir) {
@@ -101,21 +102,28 @@ async function runBenchmark() {
       process.stdout.write(`  Measuring Filter Time (Search 'Task 2499')... `);
       const input = page.locator("input");
       const startFilter = performance.now();
-      await input.fill("Task 2499");
+
+      // Use pressSequentially to simulate real typing which is more demanding
+      await input.pressSequentially("Task 2499", { delay: 10 });
+
       await page.waitForFunction(
         () => {
           const cards = document.querySelectorAll(".card");
-          return cards.length > 0 && cards.length < 20;
+          // With 10,000 cards, "Task 2499" should result in exactly 4 matches
+          // (one per column index, but our generator uses columnId in title)
+          // Task 2499 in backlog, Task 2499 in todo, etc.
+          return cards.length > 0 && cards.length <= 10;
         },
-        { timeout: 30000 },
+        { timeout: 60000 },
       );
       metrics.filterTime = (performance.now() - startFilter).toFixed(2);
       process.stdout.write(`${metrics.filterTime} ms\n`);
 
       // Benchmark 4: Drag & Drop Interaction
-      await input.fill("");
+      await input.clear();
       await page.waitForFunction(
         () => document.querySelectorAll(".card").length > 9000,
+        { timeout: 60000 }
       );
 
       process.stdout.write(

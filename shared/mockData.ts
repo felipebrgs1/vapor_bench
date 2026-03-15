@@ -24,7 +24,7 @@ const generateCards = (count: number, columnId: string): CardData[] => {
     description:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam at varius enim, ut iaculis neque.",
     priority: PRIORITIES[Math.floor(Math.random() * PRIORITIES.length)],
-    date: new Date().toLocaleDateString("pt-BR"),
+    date: new Date().toLocaleDateString("en-US"),
     avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${columnId}-${i}`,
   }));
 };

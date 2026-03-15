@@ -5,8 +5,5 @@
   "type": "module",
   "scripts": {
     "bench": "node run-benchmarks.js"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.1"
   }
 }

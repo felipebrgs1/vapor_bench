@@ -1,37 +1,8 @@
-# Framework Benchmark: VDOM vs. No-VDOM (Vapor/Solid/Svelte)
+# Framework Benchmark: VDOM vs. No-VDOM (Vapor/Solid/Svelte/React)
 
-[Português](#metodologia-de-benchmark-pt) | [English](#benchmark-methodology-en)
+This project performs automated performance and resource consumption tests comparing modern frontend frameworks (Vue, Svelte, Solid, and React), with a special focus on the new Vue Vapor mode.
 
----
-
-## Metodologia de Benchmark (PT)
-
-Este projeto realiza testes automatizados de performance e consumo de recursos comparando frameworks modernos com foco no novo modo Vue Vapor.
-
-### Cenário de Teste
-*   **Dados:** 10.000 cartões de Kanban distribuídos em 4 colunas.
-*   **Ambiente:** Playwright rodando em Chromium Headless com flags de precisão de memória ativadas.
-*   **Hardware:** Os testes são executados localmente para garantir consistência de rede e CPU.
-
-### Métricas Coletadas
-1.  **Bundle Size (KB):** Tamanho real do arquivo JavaScript final (produção) servido ao navegador.
-2.  **Initial Load (ms):** Tempo desde o início da navegação até que 10.000 componentes sejam montados e visíveis no DOM.
-3.  **Filtering Reactivity (ms):** Tempo de resposta do sistema ao digitar no filtro. Mede a capacidade do framework de remover/re-inserir milhares de nós rapidamente.
-4.  **Drag & Drop (ms):** Tempo levado para processar a mudança de um item entre arrays de colunas diferentes. Este é o teste mais crítico, pois revela o custo de re-rendering e diffing.
-5.  **Memory Heap (MB):** Memória RAM real ocupada pela aplicação após a renderização inicial e estabilização do Garbage Collector.
-
-### Como Executar
-```sh
-cd vapor/benchmark
-npm install
-node run-benchmarks.js
-```
-
----
-
-## Benchmark Methodology (EN)
-
-This project performs automated performance and resource consumption tests comparing modern frameworks, focusing on the new Vue Vapor mode.
+## Benchmark Methodology
 
 ### Test Scenario
 *   **Data:** 10,000 Kanban cards distributed across 4 columns.
@@ -48,18 +19,30 @@ This project performs automated performance and resource consumption tests compa
 ### How to Run
 ```sh
 cd vapor/benchmark
-npm install
+pnpm install
 node run-benchmarks.js
 ```
 
 ---
 
-## Key Findings / Principais Descobertas
+## Key Findings
 
-| Metric | Vue 3.5 (VDOM) | Vue Vapor | SolidJS | Svelte 5 |
-|:--- |:---:|:---:|:---:|:---:|
-| **Memory Efficiency** | Baseline | **-25%** | -20% | -10% |
-| **D&D Performance** | Heavy Lag | **Instant** | **Instant** | **Instant** |
+| Metric | Vue 3.5 (VDOM) | Vue Vapor | SolidJS | Svelte 5 | React 19 (VDOM) |
+|:--- |:---:|:---:|:---:|:---:|:---:|
+| **Memory Efficiency** | Baseline | **-25%** | -20% | -10% | +10% |
+| **D&D Performance** | Heavy Lag | **Instant** | **Instant** | **Instant** | Heavy Lag |
 
 *   **Vapor Mode:** Removes the Virtual DOM overhead, reducing memory usage significantly while maintaining 100% Vue compatibility.
-*   **Virtual DOM Bottleneck:** In high-density scenarios (10k+ nodes), the VDOM diffing process becomes a multi-second bottleneck during structural changes.
+*   **Virtual DOM Bottleneck:** In high-density scenarios (10k+ nodes), the VDOM diffing process (standard in Vue 3.5 and React 19) becomes a multi-second bottleneck during structural changes.
+
+---
+
+## Fair Comparison
+
+To ensure a fair and honest benchmark, we follow these rules:
+1.  **No External Libs**: No virtualization libraries (like `react-window`) or optimized filtering libraries (like `Fuse.js`) were used.
+2.  **Framework Core**: We use only the core APIs of each framework (e.g., React hooks, Vue refs, Svelte runes).
+3.  **Identical Logic**: Data manipulation logic, search algorithms, and DOM structure are strictly identical across all projects.
+4.  **Pure Tailwind**: Pure Tailwind CSS v4 styling is used in all cases without additional abstraction layers.
+
+The goal is to measure the performance of the **framework core** when handling large data volumes and DOM manipulation, without "shortcuts" that could favor one framework over another.

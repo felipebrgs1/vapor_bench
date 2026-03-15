@@ -68,8 +68,9 @@ const handleDrop = (targetColumnId) => {
             <input
                 type="text"
                 class="search-input"
-                placeholder="Filtrar 10.000 cartões (VUE VAPOR - No Virtual DOM)..."
-                v-model="search"
+                placeholder="Filter 10,000 cards (Vue Vapor - No Virtual DOM)..."
+                :value="search"
+                @input="search = $event.target.value"
             />
         </div>
 

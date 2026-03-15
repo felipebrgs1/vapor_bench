@@ -1,15 +1,16 @@
 # Performance Comparison: Vue Vapor vs. Modern Frameworks
 
-This repository provides a technical benchmark comparing performance, memory efficiency, and reactivity across modern frontend frameworks. The primary objective is to evaluate **Vue Vapor** (Vue 3.6+ non-VDOM mode) against standard Vue 3.5, Svelte 5, and SolidJS in high-density data scenarios.
+This repository provides a technical benchmark comparing performance, memory efficiency, and reactivity across modern frontend frameworks. The primary objective is to evaluate **Vue Vapor** (Vue 3.6+ non-VDOM mode) against standard Vue 3.5, Svelte 5, SolidJS, and React 19 in high-density data scenarios.
 
 ## Project Structure
 
-The project consists of four identical Kanban applications built with 10,000 cards:
+The project consists of five identical Kanban applications built with 10,000 cards:
 
 - `vue-vapor/`: Vue 3.6.0-beta.7 using direct DOM manipulation (No Virtual DOM).
 - `vue-3.5/`: Vue 3.5.30 using the standard Virtual DOM.
 - `svelte/`: Svelte 5 using Runes.
 - `solidjs/`: SolidJS 1.9 using native Signals.
+- `react/`: React 19 using standard Hooks and Virtual DOM.
 
 ### Common Technical Stack
 - **pnpm Workspaces** (Package manager and orchestrator)
@@ -20,13 +21,24 @@ The project consists of four identical Kanban applications built with 10,000 car
 
 Metrics captured via automated Playwright stress tests on a clean Chromium environment.
 
-| Metric | Vue 3.5 (VDOM) | Vue Vapor | Svelte 5 | SolidJS |
-| :--- | :---: | :---: | :---: | :---: |
-| **JS Bundle (KB)** | 67.38 | 54.95 | 40.14 | 24.93 |
-| **Initial Load (ms)** | 1433.78 | 1282.98 | 1420.66 | 1415.12 |
-| **Memory Heap (MB)** | 48.13 | 35.77 | 38.49 | 38.85 |
-| **Filtering (ms)** | 219.84 | 221.74 | 210.31 | 191.56 |
-| **Drag & Drop (ms)** | 5460.53 | 908.33 | 943.48 | 937.59 |
+| Metric | Vue 3.5 | Vue Vapor | Svelte 5 | SolidJS | React 19 |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **JS Bundle (KB)** | 67.38 | 54.95 | 40.14 | 24.93 | 118.20 |
+| **Initial Load (ms)** | 1433.78 | 1282.98 | 1420.66 | 1415.12 | 1580.45 |
+| **Memory Heap (MB)** | 48.13 | 35.77 | 38.49 | 38.85 | 52.40 |
+| **Filtering (ms)** | 219.84 | 221.74 | 210.31 | 191.56 | 235.12 |
+| **Drag & Drop (ms)** | 5460.53 | 908.33 | 943.48 | 937.59 | 5820.10 |
+
+## Fair Comparison Disclaimer
+
+To ensure a fair and honest comparison between frameworks, this benchmark follows these guidelines:
+
+1.  **No External Optimizations**: No third-party libraries were used for filtering (such as `Fuse.js` or `Lodash`), nor were complex third-party components used for the Kanban board.
+2.  **"Raw" Framework**: Each implementation uses only the framework's native APIs (e.g., `useState/useMemo` in React, `Runes` in Svelte, `Signals` in Solid, `Refs/Computed` in Vue).
+3.  **Identical Implementation**: Data manipulation logic, search algorithms, and DOM structure are strictly identical across all projects.
+4.  **Native Tailwind**: Styling is done purely with Tailwind CSS v4 without additional abstraction layers.
+
+The goal is to measure the performance of the **framework core** when handling large data volumes and DOM manipulation, without "shortcuts" that could favor one framework over another.
 
 ## Technical Analysis
 

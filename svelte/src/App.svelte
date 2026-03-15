@@ -68,7 +68,7 @@
         <input
             type="text"
             class="search-input"
-            placeholder="Filtrar 1.000 cartões (Svelte 5 Runes)..."
+            placeholder="Filter 10,000 cards (Svelte 5 Runes)..."
             bind:value={search}
         />
     </div>

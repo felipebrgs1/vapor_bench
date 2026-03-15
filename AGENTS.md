@@ -1,46 +1,47 @@
 # AGENTS.md — Framework Comparison Project
 
-## Visão Geral
+## Overview
 
-Este repositório é um benchmark comparativo de frameworks frontend, com 4 projetos idênticos em funcionalidade mas cada um usando um framework diferente. O objetivo é comparar performance, bundle size, DX e especialmente o novo modo Vue Vapor (sem Virtual DOM) introduzido no Vue 3.6.
+This repository is a comparative benchmark of frontend frameworks, featuring 5 projects identical in functionality, each using a different framework. The goal is to compare performance, bundle size, DX, and especially the new Vue Vapor mode (without Virtual DOM) introduced in Vue 3.6.
 
 ---
 
-## Estrutura do Repositório
+## Repository Structure
 
 ```
 vapor/
 ├── svelte/        ← Svelte 5 + Vite 8 + Tailwind v4
 ├── vue-3.5/       ← Vue 3.5.30 + Vite 8 + Tailwind v4
-├── vue-vapor/     ← Vue 3.6.0-beta.7 (modo Vapor) + Vite 8 + Tailwind v4
-└── solidjs/       ← SolidJS 1.9 + Vite 8 + Tailwind v4
+├── vue-vapor/     ← Vue 3.6.0-beta.7 (Vapor mode) + Vite 8 + Tailwind v4
+├── solidjs/       ← SolidJS 1.9 + Vite 8 + Tailwind v4
+└── react/         ← React 19 + Vite 8 + Tailwind v4
 ```
 
-Todos os projetos são intencionalmente idênticos em funcionalidade: um contador reativo centralizado na tela com estilo via Tailwind CSS.
+All projects are intentionally identical in functionality: a reactive Kanban board with 10,000 cards styled via Tailwind CSS.
 
 ---
 
-## Stack Comum a Todos os Projetos
+## Common Stack Across All Projects
 
-| Ferramenta      | Versão   | Observação                                              |
+| Tool            | Version  | Observation                                             |
 |-----------------|----------|---------------------------------------------------------|
-| Vite            | `^8.0.0` | Build tool unificado                                    |
-| Tailwind CSS    | `^4.2.1` | Via plugin `@tailwindcss/vite` — sem `tailwind.config.js` |
-| pnpm            | `^10.x`  | Gerenciador de pacotes e Workspaces                     |
-| Node.js         | `22.x`   | Ambiente de desenvolvimento                             |
+| Vite            | `^8.0.0` | Unified build tool                                      |
+| Tailwind CSS    | `^4.2.1` | Via `@tailwindcss/vite` plugin — no `tailwind.config.js` |
+| pnpm            | `^10.x`  | Package manager and Workspaces                          |
+| Node.js         | `22.x`   | Development environment                                 |
 
 ---
 
-## Detalhes por Projeto
+## Project Details
 
 ### `svelte/` — Svelte 5
 
 - **Framework:** `svelte ^5.0.0`
-- **Plugin Vite:** `@sveltejs/vite-plugin-svelte ^7.0.0`
-  - A versão `^5.x` suporta apenas Vite ≤ 6. Para Vite 8, usar obrigatoriamente `^7.0.0`.
-- **Reatividade:** Runes do Svelte 5 (`$state`, não `writable` stores)
-- **Entry point:** `src/main.js` → monta com `mount()` (API do Svelte 5, não `new App()`)
-- **Cor do botão:** Laranja (`bg-orange-500`)
+- **Vite Plugin:** `@sveltejs/vite-plugin-svelte ^7.0.0`
+  - Version `^5.x` only supports Vite ≤ 6. For Vite 8, `^7.0.0` is mandatory.
+- **Reactivity:** Svelte 5 Runes (`$state`, not `writable` stores)
+- **Entry point:** `src/main.js` → mounts with `mount()` (Svelte 5 API, not `new App()`)
+- **Button Color:** Orange (`bg-orange-500`)
 
 ```js
 // src/main.js
@@ -55,103 +56,114 @@ export default app
 ```svelte
 <!-- src/App.svelte — Svelte 5 rune syntax -->
 <script>
-  let count = $state(0)
+  let columns = $state(getInitialData())
 </script>
 ```
 
 ---
 
-### `vue-3.5/` — Vue 3.5 (referência VDOM)
+### `vue-3.5/` — Vue 3.5 (VDOM Baseline)
 
-- **Framework:** `vue 3.5.30` (versão fixada, não range)
-- **Plugin Vite:** `@vitejs/plugin-vue ^6.0.0`
-  - A versão `^5.x` suporta apenas Vite ≤ 6. Para Vite 8, usar obrigatoriamente `^6.0.0`.
-- **Reatividade:** `ref()` da Composition API padrão
+- **Framework:** `vue 3.5.30` (fixed version, not range)
+- **Vite Plugin:** `@vitejs/plugin-vue ^6.0.0`
+  - Version `^5.x` only supports Vite ≤ 6. For Vite 8, `^6.0.0` is mandatory.
+- **Reactivity:** `ref()` from standard Composition API
 - **Entry point:** `src/main.js` → `createApp(App).mount('#app')`
-- **Cor do botão:** Verde (`bg-green-500`)
-- **Papel:** Baseline de comparação com Virtual DOM clássico
+- **Button Color:** Green (`bg-green-500`)
+- **Role:** Baseline comparison with classic Virtual DOM
 
 ---
 
-### `vue-vapor/` — Vue 3.6 Vapor (sem Virtual DOM)
+### `vue-vapor/` — Vue 3.6 Vapor (No Virtual DOM)
 
-- **Framework:** `vue 3.6.0-beta.7` (versão fixada de beta)
-- **Plugin Vite:** `@vitejs/plugin-vue ^6.0.3`
-- **Modo Vapor:** Renderização sem Virtual DOM — manipulação direta do DOM
-- **Entry point:** `src/main.js` → usa `createVaporApp` do pacote `@vue/runtime-vapor`
-- **Cor do botão:** Azul (`bg-blue-500`)
+- **Framework:** `vue 3.6.0-beta.7` (fixed beta version)
+- **Vite Plugin:** `@vitejs/plugin-vue ^6.0.3`
+- **Vapor Mode:** No Virtual DOM rendering — direct DOM manipulation
+- **Entry point:** `src/main.js` → uses `createVaporApp` from `@vue/runtime-vapor` package
+- **Button Color:** Blue (`bg-blue-500`)
 
-#### Detalhes críticos do Vue Vapor
+#### Critical Vue Vapor Details
 
-**1. Import correto de `createVaporApp`:**
+**1. Correct `createVaporApp` Import:**
 ```js
-// CORRETO
+// CORRECT
 import { createVaporApp } from '@vue/runtime-vapor'
 
-// ERRADO — esse subpath não existe no pacote vue 3.6
+// WRONG — this subpath does not exist in vue 3.6 package
 import { createVaporApp } from 'vue/vapor'
 ```
 
-**2. Flag `vapor` na tag `<script setup>`:**
-Para ativar a compilação Vapor em um SFC, a tag `<script>` precisa do atributo `vapor`:
+**2. `vapor` Flag in `<script setup>`:**
+To activate Vapor compilation in an SFC, the `<script>` tag needs the `vapor` attribute:
 ```vue
-<!-- CORRETO — compila sem VDOM -->
+<!-- CORRECT — compiles without VDOM -->
 <script vapor setup>
   import { ref } from 'vue'
   const count = ref(0)
 </script>
 
-<!-- ERRADO — compila normalmente com VDOM -->
+<!-- WRONG — compiles normally with VDOM -->
 <script setup>
   ...
 </script>
 ```
-O `@vue/compiler-sfc` detecta o atributo `vapor` no bloco e ativa o `@vue/compiler-vapor`.
+`@vue/compiler-sfc` detects the `vapor` attribute and activates `@vue/compiler-vapor`.
 
-**3. Instalação com pnpm:**
-O `vue 3.6.0-beta.7` exige compatibilidade de peer dependencies. A instalação no monorepo pnpm utiliza flags automáticas no `.npmrc` ou:
+**3. Installation with pnpm:**
+`vue 3.6.0-beta.7` requires peer dependency compatibility. Installation in the pnpm monorepo uses automatic flags in `.npmrc` or:
 ```sh
 pnpm install
 ```
 
-**4. Resultado esperado:** O bundle JS do `vue-vapor` é ~25% menor que o `vue-3.5` por eliminar o overhead do VDOM.
+**4. Expected Result:** The `vue-vapor` JS bundle is ~25% smaller than `vue-3.5` by eliminating VDOM overhead.
 
 ---
 
 ### `solidjs/` — SolidJS
 
 - **Framework:** `solid-js ^1.9.0`
-- **Plugin Vite:** `vite-plugin-solid ^2.11.0`
-- **Reatividade:** Signals nativos (`createSignal`) — sem VDOM, similar ao Vapor
+- **Vite Plugin:** `vite-plugin-solid ^2.11.0`
+- **Reactivity:** Native Signals (`createSignal`) — no VDOM, similar to Vapor
 - **Entry point:** `src/main.jsx` → `render(() => <App />, document.getElementById('app'))`
-- **Cor do botão:** Roxo (`bg-purple-500`)
-- **Nota:** Usar `class=` (not `className=`) em JSX do SolidJS
+- **Button Color:** Purple (`bg-purple-500`)
+- **Note:** Use `class=` (not `className=`) in SolidJS JSX
 
 ---
 
-## Tailwind CSS v4 — Configuração
+### `react/` — React 19
 
-Todos os projetos usam Tailwind CSS v4 com a abordagem Vite-first:
+- **Framework:** `react ^19.0.0`
+- **Vite Plugin:** `@vitejs/plugin-react ^4.3.4`
+- **Reactivity:** `useState` / `useMemo` / `useCallback` (Standard Hooks)
+- **Entry point:** `src/main.jsx` → `createRoot(el).render(<App />)`
+- **Button Color:** Sky Blue (`bg-sky-500`)
+- **Role:** Comparison with traditional Virtual DOM (React 19)
 
-Não existe `tailwind.config.js`, `postcss.config.js` ou diretivas `@tailwind base/components/utilities`.
+---
 
-### Padrão em todos os projetos:
+## Tailwind CSS v4 — Configuration
 
-**`vite.config.js`** — `tailwindcss()` deve ser o primeiro plugin:
+All projects use Tailwind CSS v4 with the Vite-first approach:
+
+There is no `tailwind.config.js`, `postcss.config.js`, or `@tailwind base/components/utilities` directives.
+
+### Standard in all projects:
+
+**`vite.config.js`** — `tailwindcss()` must be the first plugin:
 ```js
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [tailwindcss(), framework()], // tailwind ANTES do plugin do framework
+  plugins: [tailwindcss(), framework()], // tailwind BEFORE the framework plugin
 })
 ```
 
-**`src/style.css`** — único arquivo CSS necessário:
+**`src/style.css`** — the only required CSS file:
 ```css
 @import "tailwindcss";
 ```
 
-**`src/main.js`** — importar o CSS antes do componente raiz:
+**`src/main.js`** — import CSS before the root component:
 ```js
 import './style.css'
 import App from './App'
@@ -159,35 +171,36 @@ import App from './App'
 
 ---
 
-## Comandos do Monorepo
+## Monorepo Commands
 
-Na raiz do projeto:
+In the project root:
 
 ```sh
-pnpm run setup   # instala dependências de todos os projetos
-pnpm run bench   # executa a suite de benchmark automatizada
+pnpm run setup   # installs dependencies for all projects
+pnpm run bench   # executes the automated benchmark suite
 ```
 
 ---
 
-## Comparativo de Bundle Size (produção, gzip)
+## Bundle Size Comparison (production, gzip)
 
-| Projeto      | JS      | CSS     | Total   |
-|--------------|---------|---------|---------|
+| Project      | JS       | CSS     | Total    |
+|--------------|----------|---------|----------|
 | `svelte`     | ~10.5 kB | ~2.3 kB | ~12.8 kB |
 | `vue-3.5`    | ~23.6 kB | ~2.6 kB | ~26.2 kB |
 | `vue-vapor`  | ~16.0 kB | ~2.5 kB | ~18.5 kB |
 | `solidjs`    | ~5.2 kB  | ~2.3 kB | ~7.5 kB  |
+| `react`      | ~45.0 kB | ~2.5 kB | ~47.5 kB |
 
-> Valores medidos com o counter simples. Projetos maiores terão proporções diferentes.
+> Values measured with the simple counter. Larger projects will have different proportions.
 
 ---
 
-## Notas para Agentes de IA
+## Notes for AI Agents
 
-- Ao adicionar dependências, usar `pnpm add` na pasta do projeto ou `pnpm -filter <projeto> add <pkg>`.
-- Ao adicionar dependências aos projetos Vue, sempre verificar se a versão do `@vitejs/plugin-vue` é `^6.x` (não `^5.x`) — obrigatório para Vite 8.
-- O `vue-vapor` importa de `@vue/runtime-vapor`, não de `vue` diretamente — não alterar esse import.
-- A flag `vapor` no `<script vapor setup>` do `vue-vapor/src/App.vue` é obrigatória — sem ela o componente compila com VDOM normal, anulando o propósito do projeto.
-- O `tailwindcss()` deve sempre vir antes do plugin do framework no array `plugins` do Vite.
-- Nenhum projeto usa `tailwind.config.js` — isso é intencional (Tailwind v4 auto-detecta os arquivos).
+- When adding dependencies, use `pnpm add` in the project folder or `pnpm -filter <project> add <pkg>`.
+- When adding dependencies to Vue projects, always verify that the `@vitejs/plugin-vue` version is `^6.x` (not `^5.x`) — required for Vite 8.
+- `vue-vapor` imports from `@vue/runtime-vapor`, not from `vue` directly — do not change this import.
+- The `vapor` flag in `<script vapor setup>` in `vue-vapor/src/App.vue` is mandatory — without it, the component compiles with normal VDOM, defeating the project's purpose.
+- `tailwindcss()` must always come before the framework plugin in the Vite `plugins` array.
+- No project uses `tailwind.config.js` — this is intentional (Tailwind v4 auto-detects files).

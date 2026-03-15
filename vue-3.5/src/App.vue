@@ -9,7 +9,7 @@ const columns = ref(getInitialData());
 const search = ref("");
 const draggedCardId = ref(null);
 
-// Computed property for filtering 1,000 cards
+// Computed property for filtering 10,000 cards
 const filteredColumns = computed(() => {
     const query = search.value.toLowerCase();
     if (!query) return columns.value;
@@ -70,7 +70,7 @@ const handleDrop = (targetColumnId) => {
             <input
                 type="text"
                 class="search-input"
-                placeholder="Filtrar 1.000 cartões (Vue 3.5 Virtual DOM)..."
+                placeholder="Filter 10,000 cards (Vue 3.5 Virtual DOM)..."
                 v-model="search"
             />
         </div>
