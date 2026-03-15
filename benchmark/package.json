@@ -2,10 +2,8 @@
   "name": "vapor-benchmark",
   "private": true,
   "version": "1.0.0",
-  "description": "Playwright-based benchmark for comparing Svelte 5, Vue 3.5, Vue Vapor, and SolidJS",
   "type": "module",
   "scripts": {
-    "test": "playwright test",
     "bench": "node run-benchmarks.js"
   },
   "devDependencies": {

@@ -10,5 +10,8 @@
   },
   "dependencies": {
     "vue": "3.6.0-beta.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.5"
   }
 }

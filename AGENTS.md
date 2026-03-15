@@ -26,6 +26,7 @@ Todos os projetos são intencionalmente idênticos em funcionalidade: um contado
 |-----------------|----------|---------------------------------------------------------|
 | Vite            | `^8.0.0` | Build tool unificado                                    |
 | Tailwind CSS    | `^4.2.1` | Via plugin `@tailwindcss/vite` — sem `tailwind.config.js` |
+| pnpm            | `^10.x`  | Gerenciador de pacotes e Workspaces                     |
 | Node.js         | `22.x`   | Ambiente de desenvolvimento                             |
 
 ---
@@ -107,10 +108,10 @@ Para ativar a compilação Vapor em um SFC, a tag `<script>` precisa do atributo
 ```
 O `@vue/compiler-sfc` detecta o atributo `vapor` no bloco e ativa o `@vue/compiler-vapor`.
 
-**3. Instalação com `--legacy-peer-deps`:**
-O `vue 3.6.0-beta.7` é uma versão pré-release e não satisfaz o range semver `^3.x` declarado por algumas peer deps. A instalação exige:
+**3. Instalação com pnpm:**
+O `vue 3.6.0-beta.7` exige compatibilidade de peer dependencies. A instalação no monorepo pnpm utiliza flags automáticas no `.npmrc` ou:
 ```sh
-npm install --legacy-peer-deps
+pnpm install
 ```
 
 **4. Resultado esperado:** O bundle JS do `vue-vapor` é ~25% menor que o `vue-3.5` por eliminar o overhead do VDOM.
@@ -124,7 +125,7 @@ npm install --legacy-peer-deps
 - **Reatividade:** Signals nativos (`createSignal`) — sem VDOM, similar ao Vapor
 - **Entry point:** `src/main.jsx` → `render(() => <App />, document.getElementById('app'))`
 - **Cor do botão:** Roxo (`bg-purple-500`)
-- **Nota:** Usar `class=` (não `className=`) em JSX do SolidJS
+- **Nota:** Usar `class=` (not `className=`) em JSX do SolidJS
 
 ---
 
@@ -156,19 +157,15 @@ import './style.css'
 import App from './App'
 ```
 
-### Peer deps do `@tailwindcss/vite`
-O `@tailwindcss/vite@4.2.1` declara peer dep `vite: "^5.2.0 || ^6 || ^7"`. Como todos os projetos usam Vite 8, a instalação requer `--legacy-peer-deps`. O plugin funciona corretamente em runtime com Vite 8.
-
 ---
 
-## Comandos
+## Comandos do Monorepo
 
-Todos os projetos têm os mesmos scripts:
+Na raiz do projeto:
 
 ```sh
-npm run dev      # servidor de desenvolvimento com HMR
-npm run build    # build de produção para dist/
-npm run preview  # preview do build de produção
+pnpm run setup   # instala dependências de todos os projetos
+pnpm run bench   # executa a suite de benchmark automatizada
 ```
 
 ---
@@ -188,10 +185,9 @@ npm run preview  # preview do build de produção
 
 ## Notas para Agentes de IA
 
+- Ao adicionar dependências, usar `pnpm add` na pasta do projeto ou `pnpm -filter <projeto> add <pkg>`.
 - Ao adicionar dependências aos projetos Vue, sempre verificar se a versão do `@vitejs/plugin-vue` é `^6.x` (não `^5.x`) — obrigatório para Vite 8.
-- Ao adicionar dependências ao `vue-vapor`, sempre usar `--legacy-peer-deps` por causa do Vue beta.
 - O `vue-vapor` importa de `@vue/runtime-vapor`, não de `vue` diretamente — não alterar esse import.
 - A flag `vapor` no `<script vapor setup>` do `vue-vapor/src/App.vue` é obrigatória — sem ela o componente compila com VDOM normal, anulando o propósito do projeto.
 - O `tailwindcss()` deve sempre vir antes do plugin do framework no array `plugins` do Vite.
 - Nenhum projeto usa `tailwind.config.js` — isso é intencional (Tailwind v4 auto-detecta os arquivos).
-- O `@tailwindcss/vite` requer `--legacy-peer-deps` com Vite 8 — comportamento esperado até o Tailwind atualizar o range de peer deps.

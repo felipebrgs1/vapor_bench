@@ -68,7 +68,7 @@ const handleDrop = (targetColumnId) => {
             <input
                 type="text"
                 class="search-input"
-                placeholder="Filtrar 1.000 cartões (VUE VAPOR - No Virtual DOM)..."
+                placeholder="Filtrar 10.000 cartões (VUE VAPOR - No Virtual DOM)..."
                 v-model="search"
             />
         </div>

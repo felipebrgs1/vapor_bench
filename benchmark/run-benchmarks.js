@@ -16,14 +16,14 @@ const FRAMEWORKS = [
 
 function getBundleSize(fwDir) {
   const assetsDir = path.join(fwDir, "dist", "assets");
-  if (!fs.existsSync(assetsDir)) return 0;
+  if (!fs.existsSync(assetsDir)) return { size: 0, gzip: 0 };
 
   const files = fs.readdirSync(assetsDir);
   const jsFile = files.find((f) => f.endsWith(".js"));
-  if (!jsFile) return 0;
+  if (!jsFile) return { size: 0, gzip: 0 };
 
   const stats = fs.statSync(path.join(assetsDir, jsFile));
-  return stats.size / 1024; // KB
+  return { size: stats.size / 1024, gzip: 0 }; // Gzip is measured by Vite during build, here we take raw
 }
 
 async function runBenchmark() {
@@ -43,21 +43,17 @@ async function runBenchmark() {
     try {
       // 1. Build
       process.stdout.write(`  Building ${fw.name}... `);
-      execSync("bun run build", { cwd: fwDir, stdio: "ignore" });
-      const bundleSize = getBundleSize(fwDir);
-      process.stdout.write(`Done (${bundleSize.toFixed(2)} KB)\n`);
+      execSync("pnpm run build", { cwd: fwDir, stdio: "ignore" });
+      const bundleData = getBundleSize(fwDir);
+      process.stdout.write(`Done (${bundleData.size.toFixed(2)} KB)\n`);
 
       // 2. Start Preview Server
       process.stdout.write(`  Starting server on port ${fw.port}... `);
-      server = spawn(
-        "bun",
-        ["run", "preview", "--", "--port", fw.port.toString()],
-        {
-          cwd: fwDir,
-          detached: true,
-          stdio: "ignore",
-        },
-      );
+      server = spawn("pnpm", ["run", "preview", "--port", fw.port.toString()], {
+        cwd: fwDir,
+        detached: true,
+        stdio: "ignore",
+      });
 
       // Wait for server to be ready
       await new Promise((resolve) => setTimeout(resolve, 4000));
@@ -72,7 +68,7 @@ async function runBenchmark() {
 
       const metrics = {
         name: fw.name,
-        bundleSize: bundleSize.toFixed(2),
+        bundleSize: bundleData.size.toFixed(2),
         loadTime: 0,
         filterTime: 0,
         dragDropTime: 0,
@@ -134,11 +130,8 @@ async function runBenchmark() {
       );
 
       const startDrag = performance.now();
-
-      // Perform Drag and Drop
       await sourceCard.dragTo(targetColumn);
 
-      // Wait for the card to appear in the target column
       await page.waitForFunction(
         (expectedTitle) => {
           const lastColCards = document
