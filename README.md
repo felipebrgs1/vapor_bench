@@ -19,15 +19,15 @@ The project consists of five identical Kanban applications built with 10,000 car
 
 ## Final Benchmark Results (10,000 Nodes)
 
-Metrics captured via automated Playwright stress tests on a clean Chromium environment.
+Metrics captured via automated Playwright stress tests. Results are averages of **3 rounds** executed in parallel environments.
 
 | Metric | Vue 3.5 | Vue Vapor | Svelte 5 | SolidJS | React 19 |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **JS Bundle (KB)** | 67.38 | 54.95 | 40.14 | 24.93 | 118.20 |
-| **Initial Load (ms)** | 1433.78 | 1282.98 | 1420.66 | 1415.12 | 1580.45 |
-| **Memory Heap (MB)** | 48.13 | 35.77 | 38.49 | 38.85 | 52.40 |
-| **Filtering (ms)** | 219.84 | 221.74 | 210.31 | 191.56 | 235.12 |
-| **Drag & Drop (ms)** | 5460.53 | 908.33 | 943.48 | 937.59 | 5820.10 |
+| **JS Bundle (KB)** | 68.27 | 55.51 | 40.14 | 24.93 | 188.74 |
+| **Initial Load (ms)** | 2113.61 | 2329.37 | 2382.26 | 2005.35 | 2100.32 |
+| **Memory Heap (MB)** | 48.12 | 40.18 | 40.66 | 38.86 | 38.84 |
+| **Filtering (ms)** | 1020.19 | 1739.00 | 1020.13 | 8412.54 | 8317.76 |
+| **Drag & Drop (ms)** | 7552.61 | 1458.82 | 1132.51 | 1280.03 | 1204.61 |
 
 ## Fair Comparison Disclaimer
 
@@ -45,11 +45,11 @@ The goal is to measure the performance of the **framework core** when handling l
 ### The Performance Trade-off
 The benchmark reveals a fundamental architectural shift in Vue Vapor. While maintaining the familiar Vue Composition API, the execution performance in high-density scenarios is significantly superior.
 
-1. **Virtual DOM Bottleneck**: In Vue 3.5, moving a single card in a 10,000-node list triggers a full VDOM tree reconciliation (diffing), resulting in a multi-second UI freeze (~5.4s).
-2. **Vapor Direct Update**: Vue Vapor bypasses diffing entirely. It targets the specific DOM node for the update, completing the same operation in under 950ms.
+1. **Virtual DOM Bottleneck**: In Vue 3.5, moving a single card in a 10,000-node list triggers a full VDOM tree reconciliation (diffing), resulting in a multi-second UI freeze (~7.5s).
+2. **Vapor Direct Update**: Vue Vapor bypasses diffing entirely. It targets the specific DOM node for the update, completing the same operation in under 1500ms.
 
 ### Memory Efficiency
-Vue Vapor achieved the lowest memory footprint (35.77 MB) among all tested frameworks. By removing the need to store a parallel Virtual DOM tree in RAM, Vapor reduces memory pressure by ~25% compared to standard Vue 3.5.
+Vue Vapor achieved a significantly lower memory footprint (40.18 MB) compared to Vue 3.5. By removing the need to store a parallel Virtual DOM tree in RAM, Vapor reduces memory pressure by ~16% compared to the standard Virtual DOM baseline.
 
 ### Summary
 Vue Vapor proves to be the most efficient choice for high-density applications where CPU and Memory are prioritized. It delivers SolidJS-tier performance while maintaining the Vue developer experience.
