@@ -5,6 +5,17 @@ import path from "path";
 
 export default defineConfig({
   plugins: [tailwindcss(), solid()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/solid-js")) {
+            return "solid-vendor";
+          }
+        },
+      },
+    },
+  },
   esbuild: {
     jsx: "preserve",
   },

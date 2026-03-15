@@ -5,6 +5,17 @@ import path from "path";
 
 export default defineConfig({
   plugins: [tailwindcss(), svelte()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/svelte')) {
+            return 'svelte';
+          }
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@shared": path.resolve(__dirname, "../shared"),

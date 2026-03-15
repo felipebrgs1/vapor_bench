@@ -5,6 +5,17 @@ import path from "path";
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'react-vendor';
+          }
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@shared": path.resolve(__dirname, "../shared"),

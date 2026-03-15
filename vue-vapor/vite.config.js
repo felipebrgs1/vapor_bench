@@ -10,6 +10,18 @@ export default defineConfig({
       vapor: true,
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/@vue/runtime-vapor') || id.includes('node_modules/vue')) {
+            return 'vue-vapor-vendor';
+          }
+          
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@shared": path.resolve(__dirname, "../shared"),

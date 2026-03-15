@@ -23,14 +23,21 @@ const FRAMEWORKS = args.length > 0
 
 function getBundleSize(fwDir) {
   const assetsDir = path.join(fwDir, "dist", "assets");
-  if (!fs.existsSync(assetsDir)) return { size: 0, gzip: 0 };
+  if (!fs.existsSync(assetsDir)) return { size: 0, chunks: [] };
 
   const files = fs.readdirSync(assetsDir);
-  const jsFile = files.find((f) => f.endsWith(".js"));
-  if (!jsFile) return { size: 0, gzip: 0 };
+  const jsFiles = files.filter((f) => f.endsWith(".js"));
+  if (jsFiles.length === 0) return { size: 0, chunks: [] };
 
-  const stats = fs.statSync(path.join(assetsDir, jsFile));
-  return { size: stats.size / 1024, gzip: 0 };
+  let totalSize = 0;
+  const chunks = [];
+  for (const file of jsFiles) {
+    const stats = fs.statSync(path.join(assetsDir, file));
+    const size = stats.size;
+    totalSize += size;
+    chunks.push({ name: file, size: size / 1024 });
+  }
+  return { size: totalSize / 1024, chunks };
 }
 
 async function runFrameworkBenchmark(fw) {
@@ -131,7 +138,13 @@ async function runBenchmark() {
       const fwDir = path.join(ROOT_DIR, fw.dir);
       process.stdout.write(`  Building ${fw.name}... `);
       execSync("pnpm run build", { cwd: fwDir, stdio: "ignore" });
-      process.stdout.write(`Done\n`);
+
+      const bundleData = getBundleSize(fwDir);
+      const chunkDetails = bundleData.chunks
+        .map(c => `${c.name.split('-')[0]}: ${c.size.toFixed(2)} KB`)
+        .join(', ');
+
+      process.stdout.write(`Done (Total: ${bundleData.size.toFixed(2)} KB [${chunkDetails}])\n`);
     }
 
     // 2. Start all servers

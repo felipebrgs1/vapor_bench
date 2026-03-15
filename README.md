@@ -23,11 +23,11 @@ Metrics captured via automated Playwright stress tests. Results are averages of 
 
 | Metric | Vue 3.5 | Vue Vapor | Svelte 5 | SolidJS | React 19 |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **JS Bundle (KB)** | 68.27 | 55.51 | 40.14 | 24.93 | 188.74 |
-| **Initial Load (ms)** | 2113.61 | 2329.37 | 2382.26 | 2005.35 | 2100.32 |
-| **Memory Heap (MB)** | 48.12 | 40.18 | 40.66 | 38.86 | 38.84 |
-| **Filtering (ms)** | 1020.19 | 1739.00 | 1020.13 | 8412.54 | 8317.76 |
-| **Drag & Drop (ms)** | 7552.61 | 1458.82 | 1132.51 | 1280.03 | 1204.61 |
+| **JS Bundle (KB)** | 68.44 | 55.76 | 40.39 | 25.12 | 188.91 |
+| **Initial Load (ms)** | 1843.05 | 1938.10 | 1853.91 | 1889.87 | 1867.27 |
+| **Memory Heap (MB)** | 48.12 | 40.18 | 40.19 | 38.84 | 38.84 |
+| **Filtering (ms)** | 888.95 | 1602.43 | 1557.37 | 7352.34 | 7397.25 |
+| **Drag & Drop (ms)** | 7908.53 | 1420.36 | 1384.89 | 1165.05 | 1284.18 |
 
 ## Fair Comparison Disclaimer
 
@@ -45,7 +45,7 @@ The goal is to measure the performance of the **framework core** when handling l
 ### The Performance Trade-off
 The benchmark reveals a fundamental architectural shift in Vue Vapor. While maintaining the familiar Vue Composition API, the execution performance in high-density scenarios is significantly superior.
 
-1. **Virtual DOM Bottleneck**: In Vue 3.5, moving a single card in a 10,000-node list triggers a full VDOM tree reconciliation (diffing), resulting in a multi-second UI freeze (~7.5s).
+1. **Virtual DOM Bottleneck**: In Vue 3.5, moving a single card in a 10,000-node list triggers a full VDOM tree reconciliation (diffing), resulting in a multi-second UI freeze (~7.9s).
 2. **Vapor Direct Update**: Vue Vapor bypasses diffing entirely. It targets the specific DOM node for the update, completing the same operation in under 1500ms.
 
 ### Memory Efficiency
@@ -53,6 +53,12 @@ Vue Vapor achieved a significantly lower memory footprint (40.18 MB) compared to
 
 ### Summary
 Vue Vapor proves to be the most efficient choice for high-density applications where CPU and Memory are prioritized. It delivers SolidJS-tier performance while maintaining the Vue developer experience.
+
+### Architectural Impact on Bundle Sizes
+The variation in chunk sizes between frameworks (e.g., React's small `index` vs. Svelte's larger `index`) is a direct result of their core architectural philosophies:
+
+1.  **Compiler-First (Svelte, Solid, Vue Vapor)**: These frameworks transform components into direct DOM instructions during build time. This logic is embedded in the application `index` chunk, making it larger (~8KB), while requiring a much smaller library overhead in the vendor chunk.
+2.  **Runtime-First (React)**: React ships a comprehensive engine (~185KB) that handles the Virtual DOM, reconciliation, and event systems. Consequently, the application `index` remains small (~3.6KB) because it only contains descriptors (JSX calls) for the runtime to process.
 
 ## Methodology
 
@@ -73,3 +79,13 @@ This project uses **pnpm** as the primary package manager and runtime orchestrat
 Upon completion, a `BENCHMARK_REPORT.md` file is generated in the root directory with the latest captured metrics.
 
 Detailed methodology can be found in the [Benchmark README](./benchmark/README.md).
+
+## Build Optimization & Manual Chunking
+
+To provide a production-ready comparison and clear visibility into framework overhead, each project implements **Manual Chunking** via Vite 8 (using the Rolldown-powered build engine).
+
+- **Vendor Splitting**: Core framework libraries (e.g., `vue`, `svelte`, `react-dom`, `solid-js`) are isolated into dedicated `vendor` chunks.
+- **Application Logic**: The specific Kanban board logic and components are kept in an `index` chunk.
+- **Transparency**: This separation allows us to observe how much of the bundle is "framework debt" versus "application code".
+
+The automated benchmark script calculates the final **Bundle Size** metric by summing the size of all generated JavaScript chunks in the `dist/assets` directory.
