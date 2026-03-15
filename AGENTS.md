@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Este repositório é um **benchmark comparativo de frameworks frontend**, com 4 projetos idênticos em funcionalidade mas cada um usando um framework diferente. O objetivo é comparar performance, bundle size, DX e especialmente o novo modo **Vue Vapor** (sem Virtual DOM) introduzido no Vue 3.6.
+Este repositório é um benchmark comparativo de frameworks frontend, com 4 projetos idênticos em funcionalidade mas cada um usando um framework diferente. O objetivo é comparar performance, bundle size, DX e especialmente o novo modo Vue Vapor (sem Virtual DOM) introduzido no Vue 3.6.
 
 ---
 
@@ -16,7 +16,7 @@ vapor/
 └── solidjs/       ← SolidJS 1.9 + Vite 8 + Tailwind v4
 ```
 
-Todos os projetos são intencionalmente **idênticos em funcionalidade**: um contador reativo centralizado na tela com estilo via Tailwind CSS.
+Todos os projetos são intencionalmente idênticos em funcionalidade: um contador reativo centralizado na tela com estilo via Tailwind CSS.
 
 ---
 
@@ -36,7 +36,7 @@ Todos os projetos são intencionalmente **idênticos em funcionalidade**: um con
 
 - **Framework:** `svelte ^5.0.0`
 - **Plugin Vite:** `@sveltejs/vite-plugin-svelte ^7.0.0`
-  - ⚠️ A versão `^5.x` suporta apenas Vite ≤ 6. Para Vite 8, usar obrigatoriamente `^7.0.0`.
+  - A versão `^5.x` suporta apenas Vite ≤ 6. Para Vite 8, usar obrigatoriamente `^7.0.0`.
 - **Reatividade:** Runes do Svelte 5 (`$state`, não `writable` stores)
 - **Entry point:** `src/main.js` → monta com `mount()` (API do Svelte 5, não `new App()`)
 - **Cor do botão:** Laranja (`bg-orange-500`)
@@ -64,7 +64,7 @@ export default app
 
 - **Framework:** `vue 3.5.30` (versão fixada, não range)
 - **Plugin Vite:** `@vitejs/plugin-vue ^6.0.0`
-  - ⚠️ A versão `^5.x` suporta apenas Vite ≤ 6. Para Vite 8, usar obrigatoriamente `^6.0.0`.
+  - A versão `^5.x` suporta apenas Vite ≤ 6. Para Vite 8, usar obrigatoriamente `^6.0.0`.
 - **Reatividade:** `ref()` da Composition API padrão
 - **Entry point:** `src/main.js` → `createApp(App).mount('#app')`
 - **Cor do botão:** Verde (`bg-green-500`)
@@ -76,11 +76,11 @@ export default app
 
 - **Framework:** `vue 3.6.0-beta.7` (versão fixada de beta)
 - **Plugin Vite:** `@vitejs/plugin-vue ^6.0.3`
-- **Modo Vapor:** Renderização **sem Virtual DOM** — manipulação direta do DOM
+- **Modo Vapor:** Renderização sem Virtual DOM — manipulação direta do DOM
 - **Entry point:** `src/main.js` → usa `createVaporApp` do pacote `@vue/runtime-vapor`
 - **Cor do botão:** Azul (`bg-blue-500`)
 
-#### ⚠️ Detalhes críticos do Vue Vapor
+#### Detalhes críticos do Vue Vapor
 
 **1. Import correto de `createVaporApp`:**
 ```js
@@ -130,13 +130,13 @@ npm install --legacy-peer-deps
 
 ## Tailwind CSS v4 — Configuração
 
-Todos os projetos usam **Tailwind CSS v4** com a abordagem Vite-first:
+Todos os projetos usam Tailwind CSS v4 com a abordagem Vite-first:
 
-**Não existe** `tailwind.config.js`, `postcss.config.js` ou diretivas `@tailwind base/components/utilities`.
+Não existe `tailwind.config.js`, `postcss.config.js` ou diretivas `@tailwind base/components/utilities`.
 
 ### Padrão em todos os projetos:
 
-**`vite.config.js`** — `tailwindcss()` deve ser o **primeiro** plugin:
+**`vite.config.js`** — `tailwindcss()` deve ser o primeiro plugin:
 ```js
 import tailwindcss from '@tailwindcss/vite'
 
@@ -156,8 +156,8 @@ import './style.css'
 import App from './App'
 ```
 
-### ⚠️ Peer deps do `@tailwindcss/vite`
-O `@tailwindcss/vite@4.2.1` declara peer dep `vite: "^5.2.0 || ^6 || ^7"`. Como todos os projetos usam **Vite 8**, a instalação requer `--legacy-peer-deps`. O plugin funciona corretamente em runtime com Vite 8.
+### Peer deps do `@tailwindcss/vite`
+O `@tailwindcss/vite@4.2.1` declara peer dep `vite: "^5.2.0 || ^6 || ^7"`. Como todos os projetos usam Vite 8, a instalação requer `--legacy-peer-deps`. O plugin funciona corretamente em runtime com Vite 8.
 
 ---
 
@@ -190,8 +190,8 @@ npm run preview  # preview do build de produção
 
 - Ao adicionar dependências aos projetos Vue, sempre verificar se a versão do `@vitejs/plugin-vue` é `^6.x` (não `^5.x`) — obrigatório para Vite 8.
 - Ao adicionar dependências ao `vue-vapor`, sempre usar `--legacy-peer-deps` por causa do Vue beta.
-- O `vue-vapor` importa de `@vue/runtime-vapor`, **não** de `vue` diretamente — não alterar esse import.
-- A flag `vapor` no `<script vapor setup>` do `vue-vapor/src/App.vue` é **obrigatória** — sem ela o componente compila com VDOM normal, anulando o propósito do projeto.
-- O `tailwindcss()` deve sempre vir **antes** do plugin do framework no array `plugins` do Vite.
+- O `vue-vapor` importa de `@vue/runtime-vapor`, não de `vue` diretamente — não alterar esse import.
+- A flag `vapor` no `<script vapor setup>` do `vue-vapor/src/App.vue` é obrigatória — sem ela o componente compila com VDOM normal, anulando o propósito do projeto.
+- O `tailwindcss()` deve sempre vir antes do plugin do framework no array `plugins` do Vite.
 - Nenhum projeto usa `tailwind.config.js` — isso é intencional (Tailwind v4 auto-detecta os arquivos).
 - O `@tailwindcss/vite` requer `--legacy-peer-deps` com Vite 8 — comportamento esperado até o Tailwind atualizar o range de peer deps.
