@@ -1,21 +1,86 @@
 <script vapor setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { getInitialData } from "@shared/mockData";
+import Board from "./components/Board.vue";
+import "@shared/styles.css";
 
-const count = ref(0);
+// Vue Vapor uses the same reactivity system (ref, computed)
+// but compiles the template to direct DOM instructions instead of VDOM.
+const columns = ref(getInitialData());
+const search = ref("");
+const draggedCardId = ref(null);
+
+const filteredColumns = computed(() => {
+    const query = search.value.toLowerCase();
+    if (!query) return columns.value;
+
+    return columns.value.map((col) => ({
+        ...col,
+        cards: col.cards.filter(
+            (card) =>
+                card.title.toLowerCase().includes(query) ||
+                card.description.toLowerCase().includes(query),
+        ),
+    }));
+});
+
+const handleDragStart = (e, cardId) => {
+    draggedCardId.value = cardId;
+    if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", cardId);
+    }
+};
+
+const handleDrop = (targetColumnId) => {
+    const cardId = draggedCardId.value;
+    if (!cardId) return;
+
+    let movedCard = null;
+    let sourceCol = null;
+    let cardIdx = -1;
+
+    for (const col of columns.value) {
+        const idx = col.cards.findIndex((c) => c.id === cardId);
+        if (idx !== -1) {
+            sourceCol = col;
+            cardIdx = idx;
+            movedCard = col.cards[idx];
+            break;
+        }
+    }
+
+    if (movedCard) {
+        sourceCol.cards.splice(cardIdx, 1);
+        const targetCol = columns.value.find((c) => c.id === targetColumnId);
+        if (targetCol) {
+            targetCol.cards.unshift(movedCard);
+        }
+    }
+
+    draggedCardId.value = null;
+};
 </script>
 
 <template>
-    <main class="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div class="text-center">
-            <h1 class="text-4xl font-bold text-gray-900 mb-8">Vue Vapor 3.6</h1>
-            <div class="bg-white rounded-xl shadow-md p-8">
-                <button
-                    @click="count++"
-                    class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
-                >
-                    count is {{ count }}
-                </button>
-            </div>
+    <div class="kanban-container">
+        <div class="search-container">
+            <input
+                type="text"
+                class="search-input"
+                placeholder="Filtrar 1.000 cartões (VUE VAPOR - No Virtual DOM)..."
+                v-model="search"
+            />
         </div>
-    </main>
+
+        <Board
+            :columns="filteredColumns"
+            @drag-start="handleDragStart"
+            @drop-card="handleDrop"
+        />
+    </div>
 </template>
+
+<style>
+/* Global styles from shared/styles.css */
+</style>

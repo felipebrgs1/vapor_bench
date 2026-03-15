@@ -1,3 +1,4 @@
+window.frameworkName = "Vue 3.5";
 import "@shared/domScanner.js";
 import { createApp } from "vue";
 import "./style.css";
