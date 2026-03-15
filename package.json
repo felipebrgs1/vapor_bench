@@ -1,0 +1,11 @@
+{
+  "name": "vapor-framework-benchmark",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Orchestrator for framework comparison benchmark (Svelte 5, Vue 3.5, Vue Vapor, SolidJS)",
+  "type": "module",
+  "scripts": {
+    "setup": "bun install --cwd svelte && bun install --cwd vue-3.5 && bun install --cwd vue-vapor --legacy-peer-deps && bun install --cwd solidjs && bun install --cwd benchmark",
+    "bench": "node benchmark/run-benchmarks.js"
+  }
+}

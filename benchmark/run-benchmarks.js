@@ -43,14 +43,14 @@ async function runBenchmark() {
     try {
       // 1. Build
       process.stdout.write(`  Building ${fw.name}... `);
-      execSync("npm run build", { cwd: fwDir, stdio: "ignore" });
+      execSync("bun run build", { cwd: fwDir, stdio: "ignore" });
       const bundleSize = getBundleSize(fwDir);
       process.stdout.write(`Done (${bundleSize.toFixed(2)} KB)\n`);
 
       // 2. Start Preview Server
       process.stdout.write(`  Starting server on port ${fw.port}... `);
       server = spawn(
-        "npm",
+        "bun",
         ["run", "preview", "--", "--port", fw.port.toString()],
         {
           cwd: fwDir,
@@ -179,16 +179,29 @@ async function runBenchmark() {
     "\n\x1b[1m\x1b[32m%s\x1b[0m",
     "Final Stress Test Results (10,000 Cards):",
   );
-  console.table(
-    results.map((r) => ({
-      Framework: r.name,
-      "Bundle (KB)": r.bundleSize,
-      "Load (ms)": r.loadTime.toFixed(2),
-      "Filter (ms)": r.filterTime,
-      "DragDrop (ms)": r.dragDropTime,
-      "Memory (MB)": r.memoryHeap,
-    })),
-  );
+  const tableData = results.map((r) => ({
+    Framework: r.name,
+    "Bundle (KB)": r.bundleSize,
+    "Load (ms)": r.loadTime.toFixed(2),
+    "Filter (ms)": r.filterTime,
+    "DragDrop (ms)": r.dragDropTime,
+    "Memory (MB)": r.memoryHeap,
+  }));
+
+  console.table(tableData);
+
+  const reportPath = path.join(ROOT_DIR, "BENCHMARK_REPORT.md");
+  let markdown = `# Benchmark Results - ${new Date().toISOString().split("T")[0]}\n\n`;
+  markdown +=
+    "| Framework | Bundle (KB) | Load (ms) | Filter (ms) | DragDrop (ms) | Memory (MB) |\n";
+  markdown += "| :--- | :---: | :---: | :---: | :---: | :---: |\n";
+
+  tableData.forEach((row) => {
+    markdown += `| ${row.Framework} | ${row["Bundle (KB)"]} | ${row["Load (ms)"]} | ${row["Filter (ms)"]} | ${row["DragDrop (ms)"]} | ${row["Memory (MB)"]} |\n`;
+  });
+
+  fs.writeFileSync(reportPath, markdown);
+  console.log(`\nMarkdown report generated: ${reportPath}`);
 
   process.exit(0);
 }
