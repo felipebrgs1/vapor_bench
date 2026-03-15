@@ -1,3 +1,4 @@
+window.frameworkName = "Svelte 5";
 import "@shared/domScanner.js";
 import { mount } from "svelte";
 import "./style.css";

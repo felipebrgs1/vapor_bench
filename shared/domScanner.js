@@ -1,7 +1,7 @@
 /**
  * Benchmark DOM Scanner
  * Generic utility to measure Initial Render and DOM complexity across frameworks.
- * Optimized to avoid infinite loops and includes copy-to-clipboard functionality.
+ * Includes visual mutation highlighting (react-scan style) for all frameworks.
  */
 
 (function () {
@@ -38,16 +38,104 @@
     pointer-events: auto;
   `;
 
+  const spikeStyles = `
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 10px;
+    height: 10px;
+    background: red;
+    border-radius: 2px;
+    display: none;
+    box-shadow: 0 0 5px red;
+  `;
+
   let isUpdating = false;
   let lastStats = "";
+  let lastFrameTime = performance.now();
+  let spikeTimeout = null;
 
-  // Capture the start time as early as possible
-  const scannerStartTime = performance.now();
+  // Mutation Highlighting Canvas
+  let canvas, ctx;
+  const activeHighlights = new Map();
+
+  function initCanvas() {
+    canvas = document.createElement("canvas");
+    canvas.id = "mutation-scanner-overlay";
+    canvas.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9998;
+    `;
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function highlightElement(el) {
+    if (
+      !el ||
+      el === canvas ||
+      el.id === "benchmark-stats" ||
+      el.closest("#benchmark-stats")
+    )
+      return;
+
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
+    activeHighlights.set(el, {
+      rect: { x: rect.left, y: rect.top, w: rect.width, h: rect.height },
+      opacity: 1.0,
+      timestamp: performance.now(),
+    });
+  }
+
+  function drawHighlights() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const now = performance.now();
+    activeHighlights.forEach((data, el) => {
+      const age = now - data.timestamp;
+      const life = 300; // ms
+      if (age > life) {
+        activeHighlights.delete(el);
+        return;
+      }
+
+      const opacity = 1 - age / life;
+      ctx.strokeStyle = `rgba(0, 255, 0, ${opacity})`;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(data.rect.x, data.rect.y, data.rect.w, data.rect.h);
+
+      // Optional: Flash background
+      ctx.fillStyle = `rgba(0, 255, 0, ${opacity * 0.1})`;
+      ctx.fillRect(data.rect.x, data.rect.y, data.rect.w, data.rect.h);
+    });
+
+    requestAnimationFrame(drawHighlights);
+  }
 
   function createStatsPanel() {
     const container = document.createElement("div");
     container.id = "benchmark-stats";
     container.style.cssText = statsStyles;
+
+    const spike = document.createElement("div");
+    spike.id = "spike-indicator";
+    spike.style.cssText = spikeStyles;
+    container.appendChild(spike);
 
     const content = document.createElement("div");
     content.id = "benchmark-content";
@@ -56,8 +144,6 @@
     const copyBtn = document.createElement("button");
     copyBtn.innerText = "Copy";
     copyBtn.style.cssText = buttonStyles;
-    copyBtn.onmouseenter = () => (copyBtn.style.opacity = "0.8");
-    copyBtn.onmouseleave = () => (copyBtn.style.opacity = "1");
 
     copyBtn.onclick = (e) => {
       e.stopPropagation();
@@ -65,10 +151,8 @@
       navigator.clipboard.writeText(textToCopy).then(() => {
         const originalText = copyBtn.innerText;
         copyBtn.innerText = "copied!";
-        copyBtn.style.background = "#fff";
         setTimeout(() => {
           copyBtn.innerText = originalText;
-          copyBtn.style.background = "#00ff00";
         }, 1500);
       });
     };
@@ -76,6 +160,24 @@
     container.appendChild(copyBtn);
     document.body.appendChild(container);
     return content;
+  }
+
+  function monitorSpikes() {
+    const now = performance.now();
+    const delta = now - lastFrameTime;
+    lastFrameTime = now;
+
+    if (delta > 32) {
+      const spike = document.getElementById("spike-indicator");
+      if (spike) {
+        spike.style.display = "block";
+        clearTimeout(spikeTimeout);
+        spikeTimeout = setTimeout(() => {
+          spike.style.display = "none";
+        }, 150);
+      }
+    }
+    requestAnimationFrame(monitorSpikes);
   }
 
   function getDOMStats() {
@@ -92,7 +194,6 @@
     };
     findDepth(document.body, 0);
 
-    // Try to get memory via modern performance API first, then legacy
     let memoryUsed = "N/A";
     if (window.performance && window.performance.memory) {
       memoryUsed =
@@ -114,11 +215,7 @@
     isUpdating = true;
 
     const stats = getDOMStats();
-
-    // Use performance.now() which is relative to navigationStart
-    // This is the most reliable way to measure time from start without negative values
     const renderTime = performance.now().toFixed(2);
-
     const frameworkName = window.frameworkName || "Benchmark";
 
     lastStats = `
@@ -129,11 +226,9 @@
       <div>Max DOM Depth: <span style="color: #fff">${stats.maxDepth}</span></div>
       <div>Cards: <span style="color: #fff">${stats.cardCount}</span></div>
       <div>JS Heap: <span style="color: #fff">${stats.memory}</span></div>
-      <div style="font-size: 9px; color: #666; margin-top: 4px;">*Heap available in Chrome only</div>
     `;
 
     contentElement.innerHTML = lastStats;
-
     setTimeout(() => {
       isUpdating = false;
     }, 0);
@@ -150,18 +245,31 @@
   const initScanner = () => {
     if (document.getElementById("benchmark-stats")) return;
 
+    initCanvas();
+    drawHighlights();
+
     const content = createStatsPanel();
     const debouncedUpdate = debounce(() => updateStats(content), 150);
 
-    // Updates to capture framework hydration/render completion
-    setTimeout(() => updateStats(content), 100);
-    setTimeout(() => updateStats(content), 500);
-    setTimeout(() => updateStats(content), 1500);
-
     const observer = new MutationObserver((mutations) => {
-      const hasRealMutation = mutations.some(
-        (m) => !m.target.closest || !m.target.closest("#benchmark-stats"),
-      );
+      let hasRealMutation = false;
+      mutations.forEach((m) => {
+        if (
+          m.target.closest &&
+          !m.target.closest("#benchmark-stats") &&
+          m.target !== canvas
+        ) {
+          hasRealMutation = true;
+          if (m.type === "childList") {
+            m.addedNodes.forEach(
+              (node) => node.nodeType === 1 && highlightElement(node),
+            );
+          } else {
+            highlightElement(m.target);
+          }
+        }
+      });
+
       if (hasRealMutation) {
         debouncedUpdate();
       }
@@ -170,11 +278,11 @@
     observer.observe(document.body, {
       childList: true,
       subtree: true,
-      attributes: false,
-      characterData: false,
+      attributes: true,
     });
 
-    console.log("Benchmark DOM Scanner fixed and ready.");
+    requestAnimationFrame(monitorSpikes);
+    console.log("Benchmark DOM Scanner with Visual Scan ready.");
   };
 
   if (
