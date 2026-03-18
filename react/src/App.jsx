@@ -95,9 +95,40 @@ const App = () => {
     [draggedCardId],
   );
 
+  // --- NEW BENCHMARK ACTIONS ---
+  const toggleAllPriorities = useCallback(() => {
+    setColumns((prev) =>
+      prev.map((col) => ({
+        ...col,
+        cards: col.cards.map((card) => ({
+          ...card,
+          priority: card.priority === "High" ? "Low" : "High",
+        })),
+      })),
+    );
+  }, []);
+
+  const swapFirstLast = useCallback(() => {
+    setColumns((prev) =>
+      prev.map((col) => {
+        if (col.cards.length < 2) return col;
+        const newCards = [...col.cards];
+        const first = newCards[0];
+        const last = newCards[newCards.length - 1];
+        newCards[0] = last;
+        newCards[newCards.length - 1] = first;
+        return { ...col, cards: newCards };
+      }),
+    );
+  }, []);
+
+  const clearBoard = useCallback(() => {
+    setColumns((prev) => (prev.length > 0 ? [] : getInitialData()));
+  }, []);
+
   return (
     <div className="kanban-container">
-      <div className="search-container">
+      <div className="search-container flex flex-col gap-4">
         <input
           type="text"
           className="search-input"
@@ -105,6 +136,30 @@ const App = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
+        <div className="flex gap-2 justify-center mt-2">
+          <button
+            onClick={toggleAllPriorities}
+            id="bench-toggle"
+            className="px-3 py-1 bg-sky-500 text-white rounded text-sm hover:bg-sky-600 transition-colors"
+          >
+            Toggle Priorities
+          </button>
+          <button
+            onClick={swapFirstLast}
+            id="bench-swap"
+            className="px-3 py-1 bg-sky-500 text-white rounded text-sm hover:bg-sky-600 transition-colors"
+          >
+            Swap First/Last
+          </button>
+          <button
+            onClick={clearBoard}
+            id="bench-clear"
+            className="px-3 py-1 bg-sky-500 text-white rounded text-sm hover:bg-sky-600 transition-colors"
+          >
+            {columns.length > 0 ? "Clear Board" : "Restore Board"}
+          </button>
+        </div>
       </div>
 
       <Board

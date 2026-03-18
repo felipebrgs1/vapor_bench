@@ -6,7 +6,7 @@ This repository provides a technical benchmark comparing performance, memory eff
 
 The project consists of five identical Kanban applications built with 10,000 cards:
 
-- `vue-vapor/`: Vue 3.6.0-beta.7 using direct DOM manipulation (No Virtual DOM).
+- `vue-vapor/`: Vue 3.6.0-beta.8 using direct DOM manipulation (No Virtual DOM).
 - `vue-3.5/`: Vue 3.5.30 using the standard Virtual DOM.
 - `svelte/`: Svelte 5 using Runes.
 - `solidjs/`: SolidJS 1.9 using native Signals.

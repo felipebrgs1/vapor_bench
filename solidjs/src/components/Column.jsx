@@ -10,8 +10,8 @@ export const Column = (props) => {
   return (
     <div
       class="column"
-      onDragOver={handleDragOver}
-      onDrop={() => props.onDrop(props.column.id)}
+      ondragover={handleDragOver}
+      ondrop={() => props.onDrop(props.column.id)}
     >
       <div class="column-header">
         <span>{props.column.title}</span>

@@ -1,179 +1,194 @@
 /* vapor/shared/styles.css */
 :root {
-  --bg-app: #f3f4f6;
-  --bg-column: #ebedf0;
-  --bg-card: #ffffff;
-  --text-main: #1f2937;
-  --high-priority: #fee2e2;
-  --high-text: #991b1b;
-  --medium-priority: #fef3c7;
-  --medium-text: #92400e;
-  --low-priority: #dcfce7;
-  --low-text: #166534;
+    --bg-app: #f3f4f6;
+    --bg-column: #ebedf0;
+    --bg-card: #ffffff;
+    --text-main: #1f2937;
+    --high-priority: #fee2e2;
+    --high-text: #991b1b;
+    --medium-priority: #fef3c7;
+    --medium-text: #92400e;
+    --low-priority: #dcfce7;
+    --low-text: #166534;
 }
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-app);
-  color: var(--text-main);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+        sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .kanban-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .search-container {
-  margin-bottom: 20px;
-  flex-shrink: 0;
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .search-input {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 16px;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 16px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
 }
 
 .search-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .board-grid {
-  display: flex;
-  gap: 20px;
-  flex: 1;
-  overflow-x: auto;
-  align-items: flex-start;
-  padding-bottom: 12px;
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    overflow-x: auto;
+    align-items: flex-start;
+    padding-bottom: 12px;
 }
 
 .column {
-  background-color: var(--bg-column);
-  border-radius: 10px;
-  min-width: 320px;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  max-height: 100%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background-color: var(--bg-column);
+    border-radius: 10px;
+    min-width: 320px;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .column-header {
-  padding: 16px;
-  font-weight: 700;
-  font-size: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #4b5563;
+    padding: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #4b5563;
 }
 
 .card-count {
-  background: #d1d5db;
-  color: #374151;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+    background: #d1d5db;
+    color: #374151;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
 }
 
 .card-list {
-  padding: 8px;
-  overflow-y: auto;
-  flex: 1;
-  min-height: 100px;
+    padding: 8px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 100px;
 }
 
 /* Custom Scrollbar for list */
 .card-list::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
 .card-list::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 .card-list::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+    background: #cbd5e1;
+    border-radius: 3px;
 }
 
 .card {
-  background: var(--bg-card);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  cursor: grab;
-  user-select: none;
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: grab;
+    user-select: none;
 }
 
 .card:active {
-  cursor: grabbing;
+    cursor: grabbing;
 }
 
 .card-title {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 8px;
-  color: #111827;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #111827;
 }
 
 .card-desc {
-  font-size: 13px;
-  color: #6b7280;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-bottom: 12px;
-  line-height: 1.4;
+    font-size: 13px;
+    color: #6b7280;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
+    line-height: 1.4;
 }
 
 .card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .priority-tag {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
-.priority-High { background: var(--high-priority); color: var(--high-text); }
-.priority-Medium { background: var(--medium-priority); color: var(--medium-text); }
-.priority-Low { background: var(--low-priority); color: var(--low-text); }
+.priority-High {
+    background: var(--high-priority);
+    color: var(--high-text);
+}
+.priority-Medium {
+    background: var(--medium-priority);
+    color: var(--medium-text);
+}
+.priority-Low {
+    background: var(--low-priority);
+    color: var(--low-text);
+}
 
 .avatar-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  border: 1px solid #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    border: 1px solid #fff;
 }
 
 .card-date {
-  font-size: 11px;
-  color: #9ca3af;
-  font-weight: 500;
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.hidden {
+    display: none !important;
 }

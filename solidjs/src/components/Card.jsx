@@ -1,5 +1,4 @@
 /** @jsxImportSource solid-js */
-import { createMemo } from "solid-js";
 
 export const Card = (props) => {
   // Memoizing the drag handler to prevent unnecessary re-creations,
@@ -9,7 +8,12 @@ export const Card = (props) => {
   };
 
   return (
-    <div class="card" draggable={true} onDragStart={handleDragStart}>
+    <div
+      class="card"
+      classList={{ hidden: !props.card.visible }}
+      draggable={true}
+      ondragstart={handleDragStart}
+    >
       <div class="card-title">{props.card.title}</div>
       <p class="card-desc">{props.card.description}</p>
       <div class="card-footer">

@@ -15,6 +15,7 @@ function handleDragStart(e, id) {
 
 <template>
     <div
+        v-show="card.visible"
         class="card"
         draggable="true"
         @dragstart="handleDragStart($event, card.id)"

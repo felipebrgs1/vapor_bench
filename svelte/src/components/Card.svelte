@@ -5,6 +5,7 @@
 
 <div
   class="card"
+  class:hidden={!card.visible}
   draggable="true"
   ondragstart={(e) => onDragStart(e, card.id)}
 >

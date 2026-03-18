@@ -12,7 +12,7 @@ This repository is a comparative benchmark of frontend frameworks, featuring 5 p
 vapor/
 ├── svelte/        ← Svelte 5 + Vite 8 + Tailwind v4
 ├── vue-3.5/       ← Vue 3.5.30 + Vite 8 + Tailwind v4
-├── vue-vapor/     ← Vue 3.6.0-beta.7 (Vapor mode) + Vite 8 + Tailwind v4
+├── vue-vapor/     ← Vue 3.6.0-beta.8 (Vapor mode) + Vite 8 + Tailwind v4
 ├── solidjs/       ← SolidJS 1.9 + Vite 8 + Tailwind v4
 └── react/         ← React 19 + Vite 8 + Tailwind v4
 ```
@@ -76,7 +76,7 @@ export default app
 
 ### `vue-vapor/` — Vue 3.6 Vapor (No Virtual DOM)
 
-- **Framework:** `vue 3.6.0-beta.7` (fixed beta version)
+- **Framework:** `vue 3.6.0-beta.8` (fixed beta version)
 - **Vite Plugin:** `@vitejs/plugin-vue ^6.0.3`
 - **Vapor Mode:** No Virtual DOM rendering — direct DOM manipulation
 - **Entry point:** `src/main.js` → uses `createVaporApp` from `@vue/runtime-vapor` package
@@ -110,7 +110,7 @@ To activate Vapor compilation in an SFC, the `<script>` tag needs the `vapor` at
 `@vue/compiler-sfc` detects the `vapor` attribute and activates `@vue/compiler-vapor`.
 
 **3. Installation with pnpm:**
-`vue 3.6.0-beta.7` requires peer dependency compatibility. Installation in the pnpm monorepo uses automatic flags in `.npmrc` or:
+`vue 3.6.0-beta.8` requires peer dependency compatibility. Installation in the pnpm monorepo uses automatic flags in `.npmrc` or:
 ```sh
 pnpm install
 ```

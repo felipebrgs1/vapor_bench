@@ -1,11 +1,11 @@
-# Benchmark Results - 2026-03-16
+# Benchmark Results - 2026-03-18
 
-*Results are averages of **3 rounds**. Frameworks were tested in parallel environments.*
+*Results are averages of **3 rounds**, executed sequentially to minimize resource contention.*
 
-| Framework | Bundle (KB) | Load (ms) | Filter (ms) | DragDrop (ms) | Memory (MB) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| Svelte 5 | 40.39 | 1691.04 | 940.91 | 994.44 | 41.59 |
-| Vue 3.5 | 68.44 | 1740.83 | 777.40 | 4491.24 | 48.13 |
-| Vue Vapor | 56.85 | 1610.19 | 1361.32 | 1008.12 | 40.15 |
-| SolidJS | 25.12 | 1612.29 | 5973.84 | 1006.84 | 38.85 |
-| React 19 | 188.91 | 1196.33 | 894.26 | 860.62 | 24.76 |
+| Framework | Bundle (KB) | Load (ms) | Filter (ms) | Toggle (ms) | Swap (ms) | DragDrop (ms) | Memory (MB) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Svelte 5 | 41.97 | 1359.36 | 644.30 | 524.15 | 805.51 | 625.59 | 46.82 |
+| Vue 3.5 | 69.29 | 1302.01 | 683.65 | 663.19 | 819.43 | 451.84 | 48.12 |
+| Vue Vapor | 58.48 | 1272.90 | 688.37 | 659.97 | 839.19 | 661.32 | 40.01 |
+| SolidJS | 26.36 | 1319.40 | 608.47 | 691.23 | 804.02 | 657.04 | 41.53 |
+| React 19 | 189.86 | 1087.83 | 622.68 | 453.23 | 1410.41 | 468.36 | 25.01 |
