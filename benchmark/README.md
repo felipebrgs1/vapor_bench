@@ -1,6 +1,6 @@
-# Framework Benchmark: VDOM vs. No-VDOM (Vapor/Solid/Svelte/React)
+# Framework Benchmark: VDOM vs. Hybrid Mode (Vapor/Solid/Svelte/React)
 
-This project performs automated performance and resource consumption tests comparing modern frontend frameworks (Vue, Svelte, Solid, and React), with a special focus on the new Vue Vapor mode.
+This project performs automated performance and resource consumption tests comparing modern frontend frameworks (Vue, Svelte, Solid, and React), with a special focus on the new Vue Vapor hybrid mode (VDOM + Vapor compiled components).
 
 ## Benchmark Methodology
 
@@ -32,7 +32,7 @@ node run-benchmarks.js
 | **Memory Efficiency** | Baseline | **-25%** | -20% | -10% | +10% |
 | **D&D Performance** | Heavy Lag | **Instant** | **Instant** | **Instant** | Heavy Lag |
 
-*   **Vapor Mode:** Removes the Virtual DOM overhead, reducing memory usage significantly while maintaining 100% Vue compatibility.
+*   **Vapor Mode (Hybrid):** Uses a hybrid approach where child components compile to direct DOM instructions while the root App uses standard VDOM. This reduces memory usage significantly while maintaining Vue compatibility.
 *   **Virtual DOM Bottleneck:** In high-density scenarios (10k+ nodes), the VDOM diffing process (standard in Vue 3.5 and React 19) becomes a multi-second bottleneck during structural changes.
 
 ---

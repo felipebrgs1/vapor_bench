@@ -1,11 +1,11 @@
-<script vapor setup>
+<script setup>
 import { ref, watch } from "vue";
 import { getInitialData } from "@shared/mockData";
 import Board from "./components/Board.vue";
 import "@shared/styles.css";
 
 // Vue Vapor uses the same reactivity system (ref, watch)
-// but compiles the template to direct DOM instructions instead of VDOM.
+// but compiles child components to direct DOM instructions.
 const columns = ref(getInitialData().map(col => ({
     ...col,
     cards: col.cards.map(card => ({ ...card, visible: true }))
@@ -101,7 +101,7 @@ const clearBoard = () => {
             <input
                 type="text"
                 class="search-input"
-                placeholder="Filter 10,000 cards (Vue Vapor - No Virtual DOM)..."
+                placeholder="Filter 10,000 cards (Vue Vapor - Hybrid Mode)..."
                 :value="search"
                 @input="search = $event.target.value"
             />

@@ -1,12 +1,12 @@
 # Performance Comparison: Vue Vapor vs. Modern Frameworks
 
-This repository provides a technical benchmark comparing performance, memory efficiency, and reactivity across modern frontend frameworks. The primary objective is to evaluate **Vue Vapor** (Vue 3.6+ non-VDOM mode) against standard Vue 3.5, Svelte 5, SolidJS, and React 19 in high-density data scenarios.
+This repository provides a technical benchmark comparing performance, memory efficiency, and reactivity across modern frontend frameworks. The primary objective is to evaluate **Vue Vapor** (Vue 3.6+ hybrid strategy: VDOM + Vapor compiled components) against standard Vue 3.5, Svelte 5, SolidJS, and React 19 in high-density data scenarios.
 
 ## Project Structure
 
 The project consists of five identical Kanban applications built with 10,000 cards:
 
-- `vue-vapor/`: Vue 3.6.0-beta.8 using direct DOM manipulation (No Virtual DOM).
+- `vue-vapor/`: Vue 3.6.0-beta.8 using hybrid mode (VDOM + Vapor compiled components with direct DOM instructions).
 - `vue-3.5/`: Vue 3.5.30 using the standard Virtual DOM.
 - `svelte/`: Svelte 5 using Runes.
 - `solidjs/`: SolidJS 1.9 using native Signals.
@@ -46,7 +46,7 @@ The goal is to measure the performance of the **framework core** when handling l
 The benchmark reveals a fundamental architectural shift in Vue Vapor. While maintaining the familiar Vue Composition API, the execution performance in high-density scenarios is significantly superior.
 
 1. **Virtual DOM Bottleneck**: In Vue 3.5, moving a single card in a 10,000-node list triggers a full VDOM tree reconciliation (diffing), resulting in a multi-second UI freeze (~7.9s).
-2. **Vapor Direct Update**: Vue Vapor bypasses diffing entirely. It targets the specific DOM node for the update, completing the same operation in under 1500ms.
+2. **Vapor Direct Update**: Vue Vapor bypasses diffing entirely for Vapor-compiled components. It targets the specific DOM node for the update, completing the same operation in under 1500ms.
 
 ### Memory Efficiency
 Vue Vapor achieved a significantly lower memory footprint (40.18 MB) compared to Vue 3.5. By removing the need to store a parallel Virtual DOM tree in RAM, Vapor reduces memory pressure by ~16% compared to the standard Virtual DOM baseline.

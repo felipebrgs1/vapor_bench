@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository is a comparative benchmark of frontend frameworks, featuring 5 projects identical in functionality, each using a different framework. The goal is to compare performance, bundle size, DX, and especially the new Vue Vapor mode (without Virtual DOM) introduced in Vue 3.6.
+This repository is a comparative benchmark of frontend frameworks, featuring 5 projects identical in functionality, each using a different framework. The goal is to compare performance, bundle size, DX, and especially the new Vue Vapor mode (hybrid strategy: VDOM + Vapor compiled components) introduced in Vue 3.6.
 
 ---
 
@@ -12,7 +12,7 @@ This repository is a comparative benchmark of frontend frameworks, featuring 5 p
 vapor/
 ├── svelte/        ← Svelte 5 + Vite 8 + Tailwind v4
 ├── vue-3.5/       ← Vue 3.5.30 + Vite 8 + Tailwind v4
-├── vue-vapor/     ← Vue 3.6.0-beta.8 (Vapor mode) + Vite 8 + Tailwind v4
+├── vue-vapor/     ← Vue 3.6.0-beta.8 (Hybrid mode: VDOM + Vapor) + Vite 8 + Tailwind v4
 ├── solidjs/       ← SolidJS 1.9 + Vite 8 + Tailwind v4
 └── react/         ← React 19 + Vite 8 + Tailwind v4
 ```
@@ -74,40 +74,46 @@ export default app
 
 ---
 
-### `vue-vapor/` — Vue 3.6 Vapor (No Virtual DOM)
+### `vue-vapor/` — Vue 3.6 Vapor (Hybrid Strategy: VDOM + Vapor Components)
 
 - **Framework:** `vue 3.6.0-beta.8` (fixed beta version)
 - **Vite Plugin:** `@vitejs/plugin-vue ^6.0.3`
-- **Vapor Mode:** No Virtual DOM rendering — direct DOM manipulation
-- **Entry point:** `src/main.js` → uses `createVaporApp` from `@vue/runtime-vapor` package
+- **Vapor Mode:** Hybrid — VDOM present, but components with `vapor` attribute compile to direct DOM instructions
+- **Entry point:** `src/main.js` → uses `createApp` from `vue` (standard Vue app with VDOM)
 - **Button Color:** Blue (`bg-blue-500`)
 
 #### Critical Vue Vapor Details
 
-**1. Correct `createVaporApp` Import:**
+**1. Correct App Creation (Hybrid Mode):**
 ```js
-// CORRECT
-import { createVaporApp } from '@vue/runtime-vapor'
+// CORRECT — hybrid mode (VDOM + Vapor components)
+import { createApp, vaporInteropPlugin } from 'vue'
 
-// WRONG — this subpath does not exist in vue 3.6 package
-import { createVaporApp } from 'vue/vapor'
+const app = createApp(App)
+app.use(vaporInteropPlugin)
+app.mount('#app')
+
+// WRONG — pure vapor mode (no VDOM)
+import { createVaporApp } from '@vue/runtime-vapor'
 ```
 
 **2. `vapor` Flag in `<script setup>`:**
 To activate Vapor compilation in an SFC, the `<script>` tag needs the `vapor` attribute:
 ```vue
-<!-- CORRECT — compiles without VDOM -->
+<!-- CORRECT — vapor components (children) -->
 <script vapor setup>
   import { ref } from 'vue'
   const count = ref(0)
 </script>
 
-<!-- WRONG — compiles normally with VDOM -->
+<!-- CORRECT — App root uses normal VDOM (no vapor attribute) -->
 <script setup>
-  ...
+  import { ref } from 'vue'
+  const count = ref(0)
 </script>
 ```
 `@vue/compiler-sfc` detects the `vapor` attribute and activates `@vue/compiler-vapor`.
+**Important:** The root App component must NOT have the `vapor` attribute — only child components that should compile to direct DOM instructions.
 
 **3. Installation with pnpm:**
 `vue 3.6.0-beta.8` requires peer dependency compatibility. Installation in the pnpm monorepo uses automatic flags in `.npmrc` or:
@@ -115,7 +121,7 @@ To activate Vapor compilation in an SFC, the `<script>` tag needs the `vapor` at
 pnpm install
 ```
 
-**4. Expected Result:** The `vue-vapor` JS bundle is ~25% smaller than `vue-3.5` by eliminating VDOM overhead.
+**4. Expected Result:** The `vue-vapor` JS bundle is ~25% smaller than `vue-3.5` by eliminating VDOM overhead in Vapor-compiled components.
 
 ---
 
@@ -188,11 +194,12 @@ pnpm run bench   # executes the automated benchmark suite
 |--------------|----------|---------|----------|
 | `svelte`     | ~10.5 kB | ~2.3 kB | ~12.8 kB |
 | `vue-3.5`    | ~23.6 kB | ~2.6 kB | ~26.2 kB |
-| `vue-vapor`  | ~16.0 kB | ~2.5 kB | ~18.5 kB |
-| `solidjs`    | ~5.2 kB  | ~2.3 kB | ~7.5 kB  |
+| `vue-vapor`  | ~99.0 kB | ~7.9 kB | ~106.9 kB |
+| `solidjs`    | ~5.2 kB  | ~2.3 kB | ~7.5 kB |
 | `react`      | ~45.0 kB | ~2.5 kB | ~47.5 kB |
 
 > Values measured with the simple counter. Larger projects will have different proportions.
+> Note: vue-vapor uses hybrid mode with both runtime-dom and runtime-vapor included (~98KB vendor + ~10KB app).
 
 ---
 
@@ -200,7 +207,7 @@ pnpm run bench   # executes the automated benchmark suite
 
 - When adding dependencies, use `pnpm add` in the project folder or `pnpm -filter <project> add <pkg>`.
 - When adding dependencies to Vue projects, always verify that the `@vitejs/plugin-vue` version is `^6.x` (not `^5.x`) — required for Vite 8.
-- `vue-vapor` imports from `@vue/runtime-vapor`, not from `vue` directly — do not change this import.
-- The `vapor` flag in `<script vapor setup>` in `vue-vapor/src/App.vue` is mandatory — without it, the component compiles with normal VDOM, defeating the project's purpose.
+- `vue-vapor` uses standard `createApp` from `vue` with `vaporInteropPlugin` for hybrid mode (VDOM + Vapor components).
+- Child components (Board, Column, Card) use `<script vapor setup>` — the App root uses normal `<script setup>` (VDOM).
 - `tailwindcss()` must always come before the framework plugin in the Vite `plugins` array.
 - No project uses `tailwind.config.js` — this is intentional (Tailwind v4 auto-detects files).
